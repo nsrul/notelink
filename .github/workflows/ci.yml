@@ -58,3 +58,72 @@ jobs:
           VITE_JAZZ_SERVER_URL: ${{ secrets.VITE_JAZZ_SERVER_URL }}
           JAZZ_ADMIN_SECRET: ${{ secrets.JAZZ_ADMIN_SECRET }}
         run: npx --no-install jazz-tools deploy --schema-dir src/jazz
+
+  deploy:
+    needs: check
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: vercel-${{ github.ref }}
+      cancel-in-progress: true
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VITE_JAZZ_APP_ID: ${{ secrets.VITE_JAZZ_APP_ID }}
+      VITE_JAZZ_SERVER_URL: ${{ secrets.VITE_JAZZ_SERVER_URL }}
+      BACKEND_SECRET: ${{ secrets.BACKEND_SECRET }}
+      BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install Vercel CLI
+        run: npm install --global vercel@54.9.1
+      - name: Link the notes project
+        run: vercel link --yes --non-interactive --team nnassrulls-projects --project notes
+      - name: Sync Jazz and auth settings
+        run: |
+          set -euo pipefail
+          if [ -z "${VERCEL_TOKEN}" ]; then
+            echo "Add the VERCEL_TOKEN repository secret (Vercel account, Tokens)."
+            exit 1
+          fi
+          if [ "${GITHUB_REF}" = "refs/heads/main" ]; then
+            targets="production preview"
+          else
+            targets="preview"
+          fi
+          add() {
+            name="$1"
+            sensitivity="$2"
+            value="${!name-}"
+            if [ -z "${value}" ]; then
+              echo "Missing GitHub secret ${name}"
+              exit 1
+            fi
+            file="$(mktemp)"
+            chmod 600 "${file}"
+            printf '%s' "${value}" > "${file}"
+            for target in ${targets}; do
+              vercel env add "${name}" "${target}" --force --yes --non-interactive "--${sensitivity}" < "${file}"
+            done
+            rm -f "${file}"
+          }
+          add VITE_JAZZ_APP_ID no-sensitive
+          add VITE_JAZZ_SERVER_URL no-sensitive
+          add BACKEND_SECRET sensitive
+          add BETTER_AUTH_SECRET sensitive
+      - name: Deploy production
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          vercel pull --yes --non-interactive --environment=production
+          vercel build --prod --yes --standalone
+          vercel deploy --prebuilt --prod --yes
+      - name: Deploy preview
+        if: github.event_name == 'pull_request'
+        run: |
+          vercel pull --yes --non-interactive --environment=preview
+          vercel build --yes --standalone
+          vercel deploy --prebuilt --yes

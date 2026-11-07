@@ -21,7 +21,9 @@ Copy `.env.example` to `.env` for a production build that embeds Jazz Cloud. `VI
 
 The account menu shows the email and signs out. Signing out leaves the notebook in this browser and drops the session. The next sign-in opens that account's notebook. Another account does not see those rows.
 
-A static host, including the Docker image, has no auth server. Without Jazz settings the notebook stays in this browser. With Jazz settings baked into the build, sign-in needs an auth server on an origin the Jazz server is configured to trust: `--jwks-url`, `--jwt-issuer`, and `--jwt-audience` all set to `BETTER_AUTH_URL`, with no trailing slash. Set `BETTER_AUTH_URL` and `BETTER_AUTH_SECRET` when that origin is not `http://127.0.0.1:8870`.
+GitHub Actions deploys the site and Better Auth together to the existing Vercel project `notes` on team `nnassrulls-projects`. `/api/auth` handles sign-in. `/api/jazz-config` points the browser at Jazz Cloud. A push to `main` publishes the Jazz schema, then deploys production. Pull requests from this repository get a preview deployment. The workflow copies `VITE_JAZZ_APP_ID`, `VITE_JAZZ_SERVER_URL`, `BACKEND_SECRET`, and `BETTER_AUTH_SECRET` from GitHub Actions secrets onto that project. `VERCEL_TOKEN` (from the Vercel account token page) has to be a repository secret before that job can sign in. Automatic Git deployments are turned off, so a build that lacks those secrets cannot replace the site. The Docker image remains a static file server and has no auth server. Without Jazz settings the notebook stays in this browser.
+
+Set `BETTER_AUTH_URL` and `BETTER_AUTH_SECRET` when a local auth server is reached at an origin other than `http://127.0.0.1:8870`. Leave `BETTER_AUTH_URL` empty on Vercel: the request host is the cookie origin, and Jazz JWTs are issued for the project's production host.
 
 For a production build served locally:
 

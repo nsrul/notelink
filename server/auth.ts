@@ -3,12 +3,12 @@ import { createJazzSession, type JazzSessionConfig } from "jazz-tools/backend";
 import { jazzAdapter } from "jazz-tools/better-auth-adapter";
 import permissions from "../src/jazz/permissions.ts";
 import { app } from "../src/jazz/schema.ts";
-import { authOptions } from "./auth-options.ts";
+import { authOptions, tokenIssuer } from "./auth-options.ts";
 
 export interface AuthServerTarget {
-  appId: string;
-  serverUrl: string;
-  backendSecret: string;
+  appId?: string;
+  serverUrl?: string;
+  backendSecret?: string;
   env?: "dev" | "prod";
 }
 
@@ -24,6 +24,7 @@ export async function createAuthServer(target?: AuthServerTarget) {
   }
 
   const options = authOptions();
+  const issuer = tokenIssuer();
   const config: JazzSessionConfig = {
     app,
     permissions,
@@ -31,9 +32,9 @@ export async function createAuthServer(target?: AuthServerTarget) {
     serverUrl,
     env: target?.env ?? (process.env.NODE_ENV === "production" ? "prod" : "dev"),
     driver: { type: "memory" },
-    jwksUrl: `${options.baseURL}/api/auth/jwks`,
-    jwtIssuer: options.baseURL,
-    jwtAudience: options.baseURL,
+    jwksUrl: `${issuer}/api/auth/jwks`,
+    jwtIssuer: issuer,
+    jwtAudience: issuer,
   };
 
   const session = await createJazzSession({ ...config, initial: { backendSecret } });
