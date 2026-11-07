@@ -10,15 +10,16 @@ if (!existsSync("node_modules/esbuild/bin/esbuild")) {
 
 /** Vercel's function builder loads the project's TypeScript, and TypeScript 7
  *  does not expose the compiler API that builder calls. Ship plain JavaScript
- *  instead. Dependencies stay external so the native Jazz addon is traced. */
+ *  instead. Bundle the JavaScript dependencies and leave jazz-napi external so
+ *  only the native addon is traced into the function. */
 await mkdir("api/auth", { recursive: true });
 
 const shared = {
   bundle: true,
   platform: "node",
   format: "esm",
-  packages: "external",
   target: "node24",
+  external: ["jazz-napi"],
 };
 
 await build({
