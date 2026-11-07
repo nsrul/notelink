@@ -52,6 +52,30 @@ import { startAppJazzSync } from "../platform/jazz-sync";
 import { SpaceRosters } from "../platform/rosters";
 import { WorkspaceDocument, type SyncStatus, type WorkspaceMutation } from "../platform/workspace-document";
 import { WorkspaceStateStore, WorkspaceStoreContext } from "./workspace-store";
+import type { AccountHandle, Db } from "jazz-tools";
+
+/** The signed-in Jazz account this window's notebook belongs to, and what the
+ *  account menu may ask of it. The session above the workspace owns the
+ *  account lifecycle; the workspace only mirrors through its client. */
+export interface WorkspaceJazz {
+  db: Db;
+  account: AccountHandle;
+  /** The account's local-first signing root as a recovery phrase. */
+  recoveryPhrase(): string | null;
+  signOut(): Promise<void>;
+}
+
+/** What the account menu shows, whichever way the notebook is opened. */
+export interface WorkspaceAuth {
+  /** False for a notebook kept only in this browser. */
+  configured: boolean;
+  accountId: string | null;
+  recoveryPhrase(): string | null;
+  signOut(): Promise<void>;
+  /** A new local-first account has not been backed up yet. */
+  needsBackup: boolean;
+  dismissBackup(): void;
+}
 
 /** What changes rarely — the actions, the selection, the member's spaces
  *  and preferences — so a view reading it is not redrawn by every keystroke.
@@ -61,6 +85,8 @@ import { WorkspaceStateStore, WorkspaceStoreContext } from "./workspace-store";
 export interface WorkspaceContextValue {
   document: WorkspaceDocument | null;
   platform: PlatformClient | null;
+  /** The account the notebook is open for, and the actions the menu offers. */
+  auth: WorkspaceAuth;
   selectedPageId: string;
   loading: boolean;
   error: string | null;
@@ -223,7 +249,19 @@ function blankPage(id: string, kind: NotePage["kind"], parentId: string | null, 
   };
 }
 
-export function WorkspaceProvider({ children }: { children: ReactNode }) {
+/** Set just before a new local-first account is made, so the app can offer
+ *  its recovery phrase once the notebook opens. */
+export const NEW_ACCOUNT_KEY = "notes.jazz.new-account";
+
+function readNewAccount(): boolean {
+  try {
+    return window.localStorage.getItem(NEW_ACCOUNT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function WorkspaceProvider({ children, jazz }: { children: ReactNode; jazz?: WorkspaceJazz }) {
   const [state, setState] = useState<WorkspaceState>(() => emptyWorkspace());
   /* The views read the workspace from here, each the part it draws; this
      provider keeps its own copy only for the few things it decides itself. */
@@ -235,6 +273,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SyncStatus>("saved");
   const [presence, setPresence] = useState<CollaboratorPresence[]>([]);
+  const [needsBackup, setNeedsBackup] = useState(() => Boolean(jazz) && readNewAccount());
   /* One history per window, as in Notion's: it holds only what this window
      did, and it lasts as long as the window does. */
   const [history] = useState(() => new WorkspaceHistory());
@@ -251,13 +290,18 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
     let unsubscribe = () => {};
     void (async () => {
       try {
-        const sync = await startAppJazzSync();
+        const sync = await startAppJazzSync(jazz ? { db: jazz.db } : undefined);
         await sync?.ready;
       } catch (reason) {
         console.error(reason);
       }
       if (!active) return;
-      return createPlatformClient();
+      return createPlatformClient(jazz ? {
+        id: jazz.account.id,
+        handle: jazz.account.identity.subject,
+        displayName: "Local-first account",
+        avatarUrl: null,
+      } : undefined);
     })()
       .then(async (client) => {
         if (!client || !active) return;
@@ -320,7 +364,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         void opened.close().finally(() => opened?.platform.close());
       }
     };
-  }, [store]);
+  }, [jazz, store]);
 
   useEffect(() => {
     if (!platform || !selectedPageId) {
@@ -837,9 +881,28 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }, [history]);
   const annotateHistory = useCallback((input: HistoryInput) => history.annotate(input), [history]);
 
+  const dismissBackup = useCallback(() => {
+    try {
+      window.localStorage.removeItem(NEW_ACCOUNT_KEY);
+    } catch {
+      // The phrase was shown; forgetting the flag only costs a prompt.
+    }
+    setNeedsBackup(false);
+  }, []);
+
+  const auth = useMemo<WorkspaceAuth>(() => ({
+    configured: Boolean(jazz),
+    accountId: jazz?.account.id ?? null,
+    recoveryPhrase: jazz?.recoveryPhrase ?? (() => null),
+    signOut: jazz?.signOut ?? (async () => undefined),
+    needsBackup,
+    dismissBackup,
+  }), [dismissBackup, jazz, needsBackup]);
+
   const value = useMemo<WorkspaceContextValue>(() => ({
     document,
     platform,
+    auth,
     selectedPageId,
     loading,
     error,
@@ -880,6 +943,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
   }), [
     document,
     platform,
+    auth,
     selectedPageId,
     loading,
     error,

@@ -6,7 +6,9 @@ import {
   Copy,
   FileText,
   Files,
+  KeyRound,
   Link,
+  LogOut,
   Moon,
   MoreHorizontal,
   PanelLeft,
@@ -57,6 +59,7 @@ import { useCopyPageLink } from "../../hooks/useCopyPageLink";
 import { capitalized } from "../../core/title";
 import { pageGlyph } from "../editor/block-registry";
 import { TrashMenu } from "./TrashMenu";
+import { RecoveryPhraseDialog } from "../auth/RecoveryPhraseDialog";
 
 /* The graph is loaded the first time it is looked at. */
 const GraphView = lazy(() => import("./GraphView").then((module) => ({ default: module.GraphView })));
@@ -264,6 +267,7 @@ const TreeRow = memo(function TreeRow({
 export function Sidebar() {
   const {
     platform,
+    auth,
     preferences,
     selectedPageId,
     spaces,
@@ -287,6 +291,7 @@ export function Sidebar() {
 
   const asideRef = useRef<HTMLElement | null>(null);
   const settingsRef = useRef<HTMLButtonElement | null>(null);
+  const accountRef = useRef<HTMLButtonElement | null>(null);
   const trashRef = useRef<HTMLButtonElement | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -294,6 +299,8 @@ export function Sidebar() {
   const [newMenu, setNewMenu] = useState<AnchorRect | null>(null);
   const [sortMenu, setSortMenu] = useState<AnchorRect | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [recoveryPhrase, setRecoveryPhrase] = useState<string | null>(null);
   const [trashOpen, setTrashOpen] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
@@ -539,15 +546,40 @@ export function Sidebar() {
     );
   };
 
+  const showRecovery = () => {
+    const phrase = auth.recoveryPhrase();
+    if (!phrase) {
+      toast("This account has no local recovery phrase.", "error");
+      return;
+    }
+    setRecoveryPhrase(phrase);
+    setAccountOpen(false);
+  };
+
+  const accountLabel = auth.configured ? "Signed in with Jazz" : "Local notebook — stored in this browser";
   const accountFoot = (
     <>
-      {/* An indicator, not a control: there are no account actions to hang off
-          it, so it announces who you are and nothing more. */}
-      <Tooltip label={userName} placement="top-start">
-        <span className="sidebar__me" role="img" aria-label="Local notebook — stored in this browser">
-          <ProfileAvatar src={platform?.bootstrap.user.avatarUrl} name={userName} size={18} />
-        </span>
-      </Tooltip>
+      {auth.configured ? (
+        <Tooltip label={userName} placement="top-start">
+          <button
+            type="button"
+            ref={accountRef}
+            className="icon-btn sidebar__me"
+            aria-label="Account"
+            aria-haspopup="menu"
+            aria-expanded={accountOpen}
+            onClick={() => setAccountOpen(true)}
+          >
+            <ProfileAvatar src={platform?.bootstrap.user.avatarUrl} name={userName} size={18} />
+          </button>
+        </Tooltip>
+      ) : (
+        <Tooltip label={accountLabel} placement="top-start">
+          <span className="sidebar__me" role="img" aria-label={accountLabel}>
+            <ProfileAvatar src={platform?.bootstrap.user.avatarUrl} name={userName} size={18} />
+          </span>
+        </Tooltip>
+      )}
       <Tooltip label="Trash" placement="top-start">
         <button type="button" ref={trashRef} className="icon-btn" aria-label="Trash" onClick={() => setTrashOpen(true)}>
           <Trash2 size={16} />
@@ -904,6 +936,33 @@ export function Sidebar() {
           ))}
         </MenuList>
       </Popover>
+
+      <Popover
+        open={accountOpen}
+        anchor={accountRef.current ? rectOf(accountRef.current) : null}
+        placement="top-start"
+        label="Account"
+        onDismiss={() => setAccountOpen(false)}
+      >
+        <MenuList label="Account" autoFocus>
+          <div className="menu__section-title">Account</div>
+          <div className="account-menu__id">
+            {auth.accountId ? `Local-first · ${auth.accountId.slice(0, 8)}` : "Local-first account"}
+          </div>
+          <MenuItem icon={<KeyRound size={16} />} label="Recovery phrase" onSelect={showRecovery} />
+          <MenuDivider />
+          <MenuItem
+            icon={<LogOut size={16} />}
+            label="Sign out"
+            tone="danger"
+            onSelect={() => { setAccountOpen(false); void auth.signOut(); }}
+          />
+        </MenuList>
+      </Popover>
+
+      {recoveryPhrase ? (
+        <RecoveryPhraseDialog open phrase={recoveryPhrase} onClose={() => setRecoveryPhrase(null)} />
+      ) : null}
     </>
   );
 }

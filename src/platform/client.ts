@@ -53,9 +53,12 @@ export interface PlatformClient {
 }
 
 const unsupported = async (): Promise<never> => { throw new Error('This is a personal local notebook. Online collaboration is not enabled.'); };
-export async function createPlatformClient(): Promise<PlatformClient> {
+
+/** The local platform, for a notebook kept in this browser. `user` names the
+ *  person the notebook is open for — a Jazz account, or the local one. */
+export async function createPlatformClient(user?: Person): Promise<PlatformClient> {
   return {
-    bootstrap: { appId: 'open-notes', installationId: 'local', appName: 'Open Notes', user: { id: 'local-user', handle: 'local', displayName: 'Local notebook', avatarUrl: null } },
+    bootstrap: { appId: 'open-notes', installationId: 'local', appName: 'Open Notes', user: user ?? { id: 'local-user', handle: 'local', displayName: 'Local notebook', avatarUrl: null } },
     presence: { async set() {}, async watch(listener) { listener([]); return () => {}; }, async release() {} },
     users: { async search() { return []; } },
     files: { async write(path, bytes, options) { await writeFile(path, bytes, options.spaceId); }, async read(path, options) { return readFile(path, options.spaceId); }, url(path, options) { return fileUrl(path, options.spaceId); } },

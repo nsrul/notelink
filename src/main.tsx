@@ -3,25 +3,28 @@ import "../schema";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app/App";
+import { AuthGate } from "./app/auth-gate";
 import { ErrorBoundary } from "./app/ErrorBoundary";
 import { UiProvider } from "./app/ui-context";
-import { WorkspaceProvider } from "./app/workspace-context";
+import { jazzCloudConfig } from "./platform/jazz-sync";
 import "./styles/index.css";
 
 /* Two boundaries, so a render error never leaves a blank window. One inside
    the workspace, around what draws it: the workspace stays open behind the
    message and goes on saving what was written. One outside everything, for
-   an error in the workspace itself: Try again opens it afresh. */
+   an error in the workspace itself: Try again opens it afresh. Jazz's session
+   sits between them: it owns the account and shows the sign-in window until
+   one is ready. */
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
-      <WorkspaceProvider>
+      <AuthGate config={jazzCloudConfig()}>
         <ErrorBoundary>
           <UiProvider>
             <App />
           </UiProvider>
         </ErrorBoundary>
-      </WorkspaceProvider>
+      </AuthGate>
     </ErrorBoundary>
   </StrictMode>,
 );
