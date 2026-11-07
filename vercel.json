@@ -9,7 +9,7 @@
   "functions": {
     "api/**/*.js": {
       "maxDuration": 30,
-      "includeFiles": "node_modules/{jazz-napi,@garden-co/jazz-napi-linux-x64-gnu}/**"
+      "excludeFiles": "node_modules/{jazz-napi/jazz-napi.{darwin,win32,linux-arm64}*,@garden-co/**}"
     }
   },
   "git": {
