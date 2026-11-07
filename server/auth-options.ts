@@ -12,14 +12,19 @@ function onVercel(): boolean {
   return Boolean(process.env.VERCEL);
 }
 
+/** The custom domain of the existing Vercel project. Preview hosts are
+ *  `*.vercel.app`; Jazz tokens stay on this origin so the public JWKS does not
+ *  move with each deployment. */
+const PRODUCTION_HOST = "notes.nasrul.info";
+
 /** Issuer and audience stamped on Jazz JWTs.
  *  On Vercel every deployment signs with the stable production host, so Jazz
  *  Cloud has one trust anchor. Locally it is the dev server's origin. */
 export function tokenIssuer(): string {
   if (!onVercel()) return authOrigin();
   const host = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim().replace(/^https?:\/\//, "").replace(/\/$/, "");
-  if (!host) throw new Error("VERCEL_PROJECT_PRODUCTION_URL is not set");
-  return `https://${host}`;
+  if (host && !host.endsWith(".vercel.app")) return `https://${host}`;
+  return `https://${PRODUCTION_HOST}`;
 }
 
 function authSecret(): string {
@@ -48,12 +53,12 @@ function trustedOrigins(origin: string): string[] {
   return [...origins];
 }
 
-/** Hosts a Vercel deployment may serve. The production host is included when
- *  it is a custom domain. `*.vercel.app` covers the project alias and previews. */
+/** Hosts a Vercel deployment may serve. `*.vercel.app` covers previews and the
+ *  generated alias. The custom domain is always accepted. */
 function vercelBaseURL(issuer: string): { allowedHosts: string[]; protocol: "https"; fallback: string } {
+  const allowedHosts = ["*.vercel.app", PRODUCTION_HOST];
   const host = new URL(issuer).host;
-  const allowedHosts = ["*.vercel.app"];
-  if (!host.endsWith(".vercel.app")) allowedHosts.push(host);
+  if (!allowedHosts.includes(host)) allowedHosts.push(host);
   return { allowedHosts, protocol: "https", fallback: issuer };
 }
 

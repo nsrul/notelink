@@ -47,12 +47,19 @@ describe("auth origin", () => {
     expect(tokenIssuer()).toBe("https://notes.example");
     const options = authOptions();
     expect(options.baseURL).toEqual({
-      allowedHosts: ["*.vercel.app", "notes.example"],
+      allowedHosts: ["*.vercel.app", "notes.nasrul.info", "notes.example"],
       protocol: "https",
       fallback: "https://notes.example",
     });
     expect(options.secret).toBe(process.env.BETTER_AUTH_SECRET);
     expect(options.advanced.trustedProxyHeaders).toBe(true);
+  });
+
+  it("keeps the Jazz issuer on the custom domain for vercel.app hosts", () => {
+    process.env.VERCEL = "1";
+    process.env.VERCEL_PROJECT_PRODUCTION_URL = "notes-nnassrulls-projects.vercel.app";
+    process.env.BETTER_AUTH_SECRET = "notes-test-secret-please-change-me-32chars";
+    expect(tokenIssuer()).toBe("https://notes.nasrul.info");
   });
 
   it("refuses the dev secret on Vercel", () => {
