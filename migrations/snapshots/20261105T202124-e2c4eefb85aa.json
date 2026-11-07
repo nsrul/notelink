@@ -1,0 +1,87 @@
+{
+  "notes_files": {
+    "columns": [
+      {
+        "name": "file_key",
+        "column_type": {
+          "type": "Text"
+        },
+        "nullable": false
+      },
+      {
+        "name": "media_type",
+        "column_type": {
+          "type": "Text"
+        },
+        "nullable": false
+      },
+      {
+        "name": "bytes",
+        "column_type": {
+          "type": "Bytea"
+        },
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "column_type": {
+          "type": "Text"
+        },
+        "nullable": false
+      },
+      {
+        "name": "deleted",
+        "column_type": {
+          "type": "Boolean"
+        },
+        "nullable": false
+      }
+    ]
+  },
+  "notes_records": {
+    "columns": [
+      {
+        "name": "scope",
+        "column_type": {
+          "type": "Text"
+        },
+        "nullable": false
+      },
+      {
+        "name": "collection",
+        "column_type": {
+          "type": "Text"
+        },
+        "nullable": false
+      },
+      {
+        "name": "record_id",
+        "column_type": {
+          "type": "Text"
+        },
+        "nullable": false
+      },
+      {
+        "name": "value",
+        "column_type": {
+          "type": "Json"
+        },
+        "nullable": false
+      },
+      {
+        "name": "updated_at",
+        "column_type": {
+          "type": "Text"
+        },
+        "nullable": false
+      },
+      {
+        "name": "deleted",
+        "column_type": {
+          "type": "Boolean"
+        },
+        "nullable": false
+      }
+    ]
+  }
+}
