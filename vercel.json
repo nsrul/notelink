@@ -4,6 +4,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/api/auth/:path*", "destination": "/api/auth/[...all]?__path=:path" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {

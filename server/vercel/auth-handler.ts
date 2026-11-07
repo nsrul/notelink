@@ -1,4 +1,5 @@
 import { createAuthServer } from "../auth.ts";
+import { authRequest } from "./auth-request.ts";
 
 export const config = { maxDuration: 30 };
 
@@ -22,7 +23,7 @@ export default {
   async fetch(request: Request): Promise<Response> {
     try {
       const { auth } = await authServer();
-      return auth.handler(request);
+      return auth.handler(authRequest(request));
     } catch (error) {
       console.error(error);
       return Response.json({ error: "Auth server is unavailable" }, { status: 500 });

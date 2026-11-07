@@ -73619,6 +73619,23 @@ async function createAuthServer(target) {
   };
 }
 
+// server/vercel/auth-request.ts
+function authRequest(request) {
+  const url = new URL(request.url);
+  const forwarded = url.searchParams.get("__path");
+  if (forwarded == null) return request;
+  url.searchParams.delete("__path");
+  url.searchParams.delete("...all");
+  const suffix = forwarded.replace(/^\/+/, "");
+  const restored = suffix ? `/api/auth/${suffix}` : "/api/auth";
+  const leaf = decodeURIComponent(url.pathname.split("/").filter(Boolean).at(-1) ?? "");
+  if (leaf === "[...all]" || url.pathname === restored) {
+    if (url.searchParams.get("path") === forwarded) url.searchParams.delete("path");
+  }
+  if (leaf === "[...all]") url.pathname = restored;
+  return new Request(url, request);
+}
+
 // server/vercel/auth-handler.ts
 var config3 = { maxDuration: 30 };
 var pending;
@@ -73635,7 +73652,7 @@ var auth_handler_default = {
   async fetch(request) {
     try {
       const { auth } = await authServer();
-      return auth.handler(request);
+      return auth.handler(authRequest(request));
     } catch (error3) {
       console.error(error3);
       return Response.json({ error: "Auth server is unavailable" }, { status: 500 });
