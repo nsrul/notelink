@@ -3,10 +3,9 @@ import "../schema";
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./app/App";
-import { AuthGate } from "./app/auth-gate";
+import { JazzBootstrap } from "./app/auth-gate";
 import { ErrorBoundary } from "./app/ErrorBoundary";
 import { UiProvider } from "./app/ui-context";
-import { jazzCloudConfig } from "./platform/jazz-sync";
 import "./styles/index.css";
 
 /* Two boundaries, so a render error never leaves a blank window. One inside
@@ -18,13 +17,13 @@ import "./styles/index.css";
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <ErrorBoundary>
-      <AuthGate config={jazzCloudConfig()}>
+      <JazzBootstrap>
         <ErrorBoundary>
           <UiProvider>
             <App />
           </UiProvider>
         </ErrorBoundary>
-      </AuthGate>
+      </JazzBootstrap>
     </ErrorBoundary>
   </StrictMode>,
 );

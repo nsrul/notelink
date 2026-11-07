@@ -1,0 +1,18 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "vite",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/**/*.js": {
+      "maxDuration": 30,
+      "excludeFiles": "node_modules/{jazz-napi/jazz-napi.{darwin,win32,linux-arm64}*,@garden-co/**}"
+    }
+  },
+  "git": {
+    "deploymentEnabled": false
+  }
+}

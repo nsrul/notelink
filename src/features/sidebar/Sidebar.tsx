@@ -6,7 +6,6 @@ import {
   Copy,
   FileText,
   Files,
-  KeyRound,
   Link,
   LogOut,
   Moon,
@@ -59,7 +58,6 @@ import { useCopyPageLink } from "../../hooks/useCopyPageLink";
 import { capitalized } from "../../core/title";
 import { pageGlyph } from "../editor/block-registry";
 import { TrashMenu } from "./TrashMenu";
-import { RecoveryPhraseDialog } from "../auth/RecoveryPhraseDialog";
 
 /* The graph is loaded the first time it is looked at. */
 const GraphView = lazy(() => import("./GraphView").then((module) => ({ default: module.GraphView })));
@@ -300,7 +298,6 @@ export function Sidebar() {
   const [sortMenu, setSortMenu] = useState<AnchorRect | null>(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
-  const [recoveryPhrase, setRecoveryPhrase] = useState<string | null>(null);
   const [trashOpen, setTrashOpen] = useState(false);
   const [renaming, setRenaming] = useState<string | null>(null);
   const [resizing, setResizing] = useState(false);
@@ -544,16 +541,6 @@ export function Sidebar() {
         ) : null}
       </div>
     );
-  };
-
-  const showRecovery = () => {
-    const phrase = auth.recoveryPhrase();
-    if (!phrase) {
-      toast("This account has no local recovery phrase.", "error");
-      return;
-    }
-    setRecoveryPhrase(phrase);
-    setAccountOpen(false);
   };
 
   const accountLabel = auth.configured ? "Signed in with Jazz" : "Local notebook — stored in this browser";
@@ -947,9 +934,8 @@ export function Sidebar() {
         <MenuList label="Account" autoFocus>
           <div className="menu__section-title">Account</div>
           <div className="account-menu__id">
-            {auth.accountId ? `Local-first · ${auth.accountId.slice(0, 8)}` : "Local-first account"}
+            {auth.email ?? (auth.accountId ? `Account · ${auth.accountId.slice(0, 8)}` : "Notes account")}
           </div>
-          <MenuItem icon={<KeyRound size={16} />} label="Recovery phrase" onSelect={showRecovery} />
           <MenuDivider />
           <MenuItem
             icon={<LogOut size={16} />}
@@ -959,10 +945,6 @@ export function Sidebar() {
           />
         </MenuList>
       </Popover>
-
-      {recoveryPhrase ? (
-        <RecoveryPhraseDialog open phrase={recoveryPhrase} onClose={() => setRecoveryPhrase(null)} />
-      ) : null}
     </>
   );
 }

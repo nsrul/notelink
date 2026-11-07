@@ -1,6 +1,6 @@
 # Notes
 
-A standalone, personal notes app with a block editor, nested pages, databases, backlinks, graph views, attachments, history, and light/dark themes. Notes stay in this browser's IndexedDB. When Jazz is configured, the same notebook syncs to Jazz Cloud for this local-first account.
+A standalone, personal notes app with a block editor, nested pages, databases, backlinks, graph views, attachments, history, and light/dark themes. Notes stay in this browser's IndexedDB. With the auth server running, the same notebook syncs through Jazz for the email account you sign in with.
 
 ## Run locally
 
@@ -13,17 +13,17 @@ npm run dev
 
 Open **http://127.0.0.1:8870**. Keep using that exact address: browser storage belongs to an origin, so changing the hostname, protocol, or port opens a separate notebook.
 
-Copy `.env.example` to `.env` to sync through Jazz. `VITE_JAZZ_APP_ID` and `VITE_JAZZ_SERVER_URL` are public. `JAZZ_ADMIN_SECRET` and `BACKEND_SECRET` stay on the machine that deploys the schema; they are not included in the browser bundle. The dev server publishes `src/jazz/schema.ts` when those values are set. Without them, the notebook stays on this browser only. CI stores the same four names as repository secrets. Its production build receives the two public values, and a push to main publishes the schema.
+Copy `.env.example` to `.env` for a production build that embeds Jazz Cloud. `VITE_JAZZ_APP_ID` and `VITE_JAZZ_SERVER_URL` are public. `JAZZ_ADMIN_SECRET` and `BACKEND_SECRET` stay on the machine that deploys the schema; they are not included in the browser bundle. CI stores the same four names as repository secrets. Its production build receives the two public values, and a push to main publishes the schema. `npm run dev` does not send the browser to Jazz Cloud: Cloud cannot fetch a JWKS endpoint on this machine.
 
 ## Accounts and sign-in
 
-With Jazz configured, Notes opens on a sign-in window until it has an account:
+`npm run dev`, and `npm start` after a build, serve Better Auth at `/api/auth` and a Jazz server on this machine. Open **http://127.0.0.1:8870**. The window asks for an email and a password of at least 8 characters. Creating an account signs you in, Jazz admits that session, and the notebook opens. The same email and password open it again after a restart. That local server's accounts and rows stay in `.jazz-data/`, which is not committed.
 
-- **Create an account** makes a Jazz local-first account. It works offline and keeps its signing root in this browser.
-- **Sign in with a recovery phrase** restores an account on another device. The phrase encodes the local-first signing root; anyone who has it can act as that account.
-- After creating an account, Notes offers the phrase once. It stays available under the account menu at the bottom of the page list, beside **Sign out**.
+The account menu shows the email and signs out. Signing out leaves the notebook in this browser and drops the session. The next sign-in opens that account's notebook. Another account does not see those rows.
 
-The account menu shows the short account id, copies the recovery phrase, and signs out. Signing out leaves the notebook and the account's signing root in place; sign in again with the phrase or create another account. Without Jazz settings there is no sign-in window and the notebook remains local.
+GitHub Actions deploys the site and Better Auth together to the existing Vercel project `notes` on team `nnassrulls-projects`, served at `https://notes.nasrul.info`. `/api/auth` handles sign-in. `/api/jazz-config` points the browser at Jazz Cloud. A push to `main` publishes the Jazz schema, then deploys production. Pull requests from this repository get a preview deployment. The workflow copies `VITE_JAZZ_APP_ID`, `VITE_JAZZ_SERVER_URL`, `BACKEND_SECRET`, and `BETTER_AUTH_SECRET` from GitHub Actions secrets onto that project. `VERCEL_TOKEN` (from the Vercel account token page) has to be a repository secret before that job can sign in. Automatic Git deployments are turned off, so a build that lacks those secrets cannot replace the site. The Docker image remains a static file server and has no auth server. Without Jazz settings the notebook stays in this browser.
+
+Set `BETTER_AUTH_URL` and `BETTER_AUTH_SECRET` when a local auth server is reached at an origin other than `http://127.0.0.1:8870`. Leave `BETTER_AUTH_URL` empty on Vercel: the request host is the cookie origin, and Jazz JWTs are issued for the project's production host.
 
 For a production build served locally:
 
@@ -48,7 +48,7 @@ Notes, settings, page history, and attachments are stored in this browser's Inde
 
 Use **Settings → Download backup** to export all records and attachments as JSON. Use **Settings → Restore backup…** to restore it. Restore replaces the current notebook after confirmation. Keep a backup before restoring or moving to another address. Backup files contain your notebook and attachments in readable form; store them appropriately.
 
-This version is for personal use. It does not provide sharing, invitations, remote agents, or collaborative text merging. With Jazz configured, each browser has a local-first account and syncs only the rows that account created. Open tabs on the same origin refresh one another's changes; concurrent edits to the same field use the last committed write, and the newer sync clock wins across devices. Link cards do not request remote metadata. Embedded content and linked images may contact their respective providers when displayed.
+This version is for personal use. It does not provide sharing, invitations, remote agents, or collaborative text merging. With Jazz running, each signed-in account syncs only the rows it created. Open tabs on the same origin refresh one another's changes; concurrent edits to the same field use the last committed write, and the newer sync clock wins across devices. Link cards do not request remote metadata. Embedded content and linked images may contact their respective providers when displayed.
 
 ## Development
 
@@ -58,7 +58,7 @@ npm test
 npm run build
 ```
 
-The included tests cover page trees, persistent records, concurrent field patches, binary attachment backups, and rejection of malformed restore data. The build output in `dist/` can be served from any static web server; use localhost or HTTPS so browser storage is available. The Vite development and preview commands bind only to loopback.
+The included tests cover page trees, persistent records, concurrent field patches, binary attachment backups, rejection of malformed restore data, and Better Auth sign-up through Jazz. The build output in `dist/` can be served from any static web server; use localhost or HTTPS so browser storage is available. Sign-in needs `npm start`, which binds to loopback and serves the build together with Better Auth. `npm run preview` serves the static build only.
 
 ## Provenance and license status
 

@@ -9,7 +9,8 @@
       "DOM.Iterable"
     ],
     "types": [
-      "vite/client"
+      "vite/client",
+      "node"
     ],
     "jsx": "react-jsx",
     "strict": true,
@@ -18,10 +19,13 @@
     "noEmit": true,
     "skipLibCheck": true,
     "isolatedModules": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
     "src",
-    "schema.ts"
+    "server",
+    "schema.ts",
+    "vite.config.ts"
   ]
 }

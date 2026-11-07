@@ -7,7 +7,6 @@ import { linkedPageId } from "../features/editor/mentions";
 import { QuickFind } from "../features/quickfind/QuickFind";
 import { Sidebar } from "../features/sidebar/Sidebar";
 import { TopBar } from "../features/topbar/TopBar";
-import { RecoveryPhraseDialog } from "../features/auth/RecoveryPhraseDialog";
 import { useFold } from "../hooks/useFold";
 import type { NotePage } from "../core/types";
 import { SIDEBAR_RAIL_WIDTH } from "../core/workspace-state";
@@ -32,7 +31,7 @@ function OpenPage({ pageId, preview, readOnly }: { pageId: string; preview: Note
 
 export function App() {
   const {
-    selectedPageId, loading, error, preferences, createPage, selectPage, setPreference, canEdit, graphOpen, restorePage, deletePage, auth,
+    selectedPageId, loading, error, preferences, createPage, selectPage, setPreference, canEdit, graphOpen, restorePage, deletePage,
   } = useWorkspace();
   const store = useWorkspaceStore();
   const { setQuickFindOpen, drawerOpen, setDrawerOpen, sharePageId, closeShare, peekPageId, openPeek, closePeek, toast } = useUi();
@@ -44,9 +43,6 @@ export function App() {
   /* Same sum the Sidebar does. The shell only needs it for the width of the
      first track; what goes IN that track is the Sidebar's business. */
   const railed = folded || preferences.sidebar_collapsed;
-  /* A just-created account is offered its recovery phrase once the notebook
-     opens; afterwards it stays in the account menu. */
-  const backupPhrase = auth.needsBackup ? auth.recoveryPhrase() : null;
 
   /* The side peek is laid out by the shell: docked beside the page when the
      page pane holds both, over it when it does not. */
@@ -295,9 +291,6 @@ export function App() {
         </Suspense>
       ) : null}
       <QuickFind />
-      {backupPhrase ? (
-        <RecoveryPhraseDialog open phrase={backupPhrase} onClose={auth.dismissBackup} />
-      ) : null}
     </div>
   );
 }
