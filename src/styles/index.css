@@ -8816,3 +8816,188 @@ button.db__th:hover,
 .dbv--readonly .view-tab--add {
   display: none;
 }
+
+/* ============================================================================
+   Authentication
+   ========================================================================== */
+
+/* The window before the notebook opens: one card, centred on paper. It uses
+   the same type and surfaces as the rest of Notes, so signing in does not
+   feel like a different app. */
+.auth {
+  display: grid;
+  height: 100%;
+  padding: 24px;
+  place-items: center;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.auth__card {
+  display: flex;
+  width: min(380px, 100%);
+  flex-direction: column;
+  gap: 10px;
+  padding: 26px;
+  border-radius: var(--r-lg);
+  background: var(--elevated);
+  box-shadow: var(--shadow-pop);
+}
+
+.auth__mark {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  align-self: center;
+  place-items: center;
+  border-radius: var(--r-lg);
+  background: var(--fill);
+  color: var(--ink-2);
+}
+
+.auth h1 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.auth__lede {
+  margin: 0 0 6px;
+  color: var(--ink-3);
+  font-size: 14px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.auth__action {
+  width: 100%;
+  min-height: 34px;
+}
+
+.auth__note {
+  margin: 2px 0 0;
+  color: var(--ink-4);
+  font-size: 12px;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth__form label {
+  color: var(--ink-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.auth__form textarea {
+  min-height: 88px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--fill);
+  color: var(--ink);
+  font-family: var(--notes-font-code);
+  font-size: 13px;
+  line-height: 1.55;
+  outline: 0;
+  resize: vertical;
+}
+
+.auth__form textarea:focus {
+  box-shadow: inset 0 0 0 1px var(--blue);
+}
+
+.auth__form-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.auth__error {
+  margin: 2px 0 0;
+  padding: 9px 10px;
+  border-radius: var(--r-sm);
+  background: var(--danger-tint);
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* The recovery phrase: a secret shown plainly enough to copy by hand. */
+.recovery {
+  width: min(480px, calc(100vw - 32px));
+}
+
+.recovery__head {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.recovery__title {
+  margin: 0;
+  padding: 0 10px;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 34px;
+}
+
+.recovery__head .icon-btn {
+  margin-left: auto;
+}
+
+.recovery__body {
+  padding: 14px;
+}
+
+.recovery__lede {
+  margin: 0 0 10px;
+  color: var(--ink-2);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.recovery__phrase {
+  display: block;
+  padding: 12px;
+  border-radius: var(--r-sm);
+  background: var(--fill);
+  color: var(--ink);
+  font-family: var(--notes-font-code);
+  font-size: 13px;
+  line-height: 1.7;
+  user-select: all;
+  word-spacing: 4px;
+}
+
+.recovery__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.recovery__warning {
+  margin: 12px 0 0;
+  color: var(--ink-3);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.account-menu__id {
+  overflow: hidden;
+  padding: 2px 9px 6px;
+  color: var(--ink-3);
+  font-family: var(--notes-font-code);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

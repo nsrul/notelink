@@ -15,6 +15,16 @@ Open **http://127.0.0.1:8870**. Keep using that exact address: browser storage b
 
 Copy `.env.example` to `.env` to sync through Jazz. `VITE_JAZZ_APP_ID` and `VITE_JAZZ_SERVER_URL` are public. `JAZZ_ADMIN_SECRET` and `BACKEND_SECRET` stay on the machine that deploys the schema; they are not included in the browser bundle. The dev server publishes `src/jazz/schema.ts` when those values are set. Without them, the notebook stays on this browser only. CI stores the same four names as repository secrets. Its production build receives the two public values, and a push to main publishes the schema.
 
+## Accounts and sign-in
+
+With Jazz configured, Notes opens on a sign-in window until it has an account:
+
+- **Create an account** makes a Jazz local-first account. It works offline and keeps its signing root in this browser.
+- **Sign in with a recovery phrase** restores an account on another device. The phrase encodes the local-first signing root; anyone who has it can act as that account.
+- After creating an account, Notes offers the phrase once. It stays available under the account menu at the bottom of the page list, beside **Sign out**.
+
+The account menu shows the short account id, copies the recovery phrase, and signs out. Signing out leaves the notebook and the account's signing root in place; sign in again with the phrase or create another account. Without Jazz settings there is no sign-in window and the notebook remains local.
+
 For a production build served locally:
 
 ```sh

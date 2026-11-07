@@ -46,16 +46,57 @@ export function jazzCloudConfig(): Pick<JazzSyncOptions, "appId" | "serverUrl" |
   return { appId, serverUrl, env: "prod" };
 }
 
-let appSync: Promise<NotebookSync | null> | undefined;
+/** The signed-in Jazz client the app's notebook mirrors through. */
+export interface AppJazz {
+  db: Db;
+  /** The account's local-first signing root, when the app has one. */
+  secret?: string;
+}
 
-/** One sync session for this page. Missing cloud settings leave the notebook local. */
-export function startAppJazzSync(): Promise<NotebookSync | null> {
+/** The sync bound to the account the app is signed in as. Jazz's session owns
+ *  the client and its shutdown, so the sync never closes it. */
+let appSync: { db: Db; promise: Promise<NotebookSync> } | undefined;
+
+/** One sync session for this page. Missing cloud settings, or no signed-in
+ *  account, leave the notebook local. */
+export function startAppJazzSync(jazz?: AppJazz): Promise<NotebookSync | null> {
   const config = jazzCloudConfig();
-  if (!config) return Promise.resolve(null);
-  return appSync ??= openNotebookSync(config).catch(error => {
-    appSync = undefined;
+  if (!config || !jazz) return Promise.resolve(null);
+  if (appSync?.db === jazz.db) return appSync.promise;
+  const previous = appSync;
+  const promise = (async () => {
+    // A client replaced by a sign-in or sign-out is retired before the new one
+    // is bound, so two accounts never write through the same sync.
+    if (previous) await previous.promise.then(sync => sync.stop()).catch(() => undefined);
+    return bindSync({
+      db: jazz.db,
+      secret: jazz.secret ?? "",
+      clocks: loadClocks(true),
+      persistClocks: true,
+      durability: "local",
+      ownsDb: false,
+    });
+  })().catch(error => {
+    if (appSync?.db === jazz.db) appSync = undefined;
     throw error;
   });
+  appSync = { db: jazz.db, promise };
+  return promise;
+}
+
+/** Stops mirroring the notebook, keeping whatever is already local. Called
+ *  before Jazz signs out, so the old account's client is never left subscribed. */
+export async function stopAppJazzSync(): Promise<void> {
+  const current = appSync;
+  appSync = undefined;
+  if (!current) return;
+  try {
+    const sync = await current.promise;
+    await sync.flush().catch(() => undefined);
+    await sync.stop();
+  } catch {
+    // The client it was bound to is already gone.
+  }
 }
 
 export async function openNotebookSync(options: JazzSyncOptions): Promise<NotebookSync> {
@@ -88,6 +129,9 @@ function bindSync(input: {
   clocks: Map<string, number>;
   persistClocks: boolean;
   durability: DurabilityTier;
+  /** Whether this sync also closes the database. Jazz's session owns its
+   *  client, so the app's sync only lets go of it. */
+  ownsDb?: boolean;
 }): NotebookSync {
   const { db, clocks } = input;
   let stopped = false;
@@ -224,7 +268,7 @@ function bindSync(input: {
       unsubscribeRecords();
       unsubscribeFiles();
       stopLocal();
-      await db.shutdown();
+      if (input.ownsDb !== false) await db.shutdown();
     },
   };
 }
