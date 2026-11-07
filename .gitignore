@@ -1,5 +1,6 @@
 node_modules/
 dist/
+.jazz-data/
 .terminus/
 .env*
 !.env.example

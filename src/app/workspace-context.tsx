@@ -52,16 +52,16 @@ import { startAppJazzSync } from "../platform/jazz-sync";
 import { SpaceRosters } from "../platform/rosters";
 import { WorkspaceDocument, type SyncStatus, type WorkspaceMutation } from "../platform/workspace-document";
 import { WorkspaceStateStore, WorkspaceStoreContext } from "./workspace-store";
-import type { AccountHandle, Db } from "jazz-tools";
+import type { Db } from "jazz-tools";
 
 /** The signed-in Jazz account this window's notebook belongs to, and what the
  *  account menu may ask of it. The session above the workspace owns the
  *  account lifecycle; the workspace only mirrors through its client. */
 export interface WorkspaceJazz {
   db: Db;
-  account: AccountHandle;
-  /** The account's local-first signing root as a recovery phrase. */
-  recoveryPhrase(): string | null;
+  accountId: string | null;
+  /** The Better Auth email the account signed in with, when known. */
+  email: string | null;
   signOut(): Promise<void>;
 }
 
@@ -70,11 +70,8 @@ export interface WorkspaceAuth {
   /** False for a notebook kept only in this browser. */
   configured: boolean;
   accountId: string | null;
-  recoveryPhrase(): string | null;
+  email: string | null;
   signOut(): Promise<void>;
-  /** A new local-first account has not been backed up yet. */
-  needsBackup: boolean;
-  dismissBackup(): void;
 }
 
 /** What changes rarely — the actions, the selection, the member's spaces
@@ -249,18 +246,6 @@ function blankPage(id: string, kind: NotePage["kind"], parentId: string | null, 
   };
 }
 
-/** Set just before a new local-first account is made, so the app can offer
- *  its recovery phrase once the notebook opens. */
-export const NEW_ACCOUNT_KEY = "notes.jazz.new-account";
-
-function readNewAccount(): boolean {
-  try {
-    return window.localStorage.getItem(NEW_ACCOUNT_KEY) === "1";
-  } catch {
-    return false;
-  }
-}
-
 export function WorkspaceProvider({ children, jazz }: { children: ReactNode; jazz?: WorkspaceJazz }) {
   const [state, setState] = useState<WorkspaceState>(() => emptyWorkspace());
   /* The views read the workspace from here, each the part it draws; this
@@ -273,7 +258,6 @@ export function WorkspaceProvider({ children, jazz }: { children: ReactNode; jaz
   const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<SyncStatus>("saved");
   const [presence, setPresence] = useState<CollaboratorPresence[]>([]);
-  const [needsBackup, setNeedsBackup] = useState(() => Boolean(jazz) && readNewAccount());
   /* One history per window, as in Notion's: it holds only what this window
      did, and it lasts as long as the window does. */
   const [history] = useState(() => new WorkspaceHistory());
@@ -297,9 +281,9 @@ export function WorkspaceProvider({ children, jazz }: { children: ReactNode; jaz
       }
       if (!active) return;
       return createPlatformClient(jazz ? {
-        id: jazz.account.id,
-        handle: jazz.account.identity.subject,
-        displayName: "Local-first account",
+        id: jazz.accountId ?? "local-user",
+        handle: jazz.email ?? jazz.accountId ?? "local",
+        displayName: jazz.email ?? "Notes account",
         avatarUrl: null,
       } : undefined);
     })()
@@ -881,23 +865,12 @@ export function WorkspaceProvider({ children, jazz }: { children: ReactNode; jaz
   }, [history]);
   const annotateHistory = useCallback((input: HistoryInput) => history.annotate(input), [history]);
 
-  const dismissBackup = useCallback(() => {
-    try {
-      window.localStorage.removeItem(NEW_ACCOUNT_KEY);
-    } catch {
-      // The phrase was shown; forgetting the flag only costs a prompt.
-    }
-    setNeedsBackup(false);
-  }, []);
-
   const auth = useMemo<WorkspaceAuth>(() => ({
     configured: Boolean(jazz),
-    accountId: jazz?.account.id ?? null,
-    recoveryPhrase: jazz?.recoveryPhrase ?? (() => null),
+    accountId: jazz?.accountId ?? null,
+    email: jazz?.email ?? null,
     signOut: jazz?.signOut ?? (async () => undefined),
-    needsBackup,
-    dismissBackup,
-  }), [dismissBackup, jazz, needsBackup]);
+  }), [jazz]);
 
   const value = useMemo<WorkspaceContextValue>(() => ({
     document,
