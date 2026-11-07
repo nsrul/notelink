@@ -103,13 +103,11 @@ jobs:
               echo "Missing GitHub secret ${name}"
               exit 1
             fi
-            file="$(mktemp)"
-            chmod 600 "${file}"
-            printf '%s' "${value}" > "${file}"
             for target in ${targets}; do
-              vercel env add "${name}" "${target}" --force --yes --non-interactive "--${sensitivity}" < "${file}"
+              # --value selects every Preview branch. Stdin leaves that choice
+              # unanswered, and the CLI exits with git_branch_required.
+              vercel env add "${name}" "${target}" --value "${value}" --force --yes --non-interactive "--${sensitivity}"
             done
-            rm -f "${file}"
           }
           add VITE_JAZZ_APP_ID no-sensitive
           add VITE_JAZZ_SERVER_URL no-sensitive
