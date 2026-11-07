@@ -1,4 +1,4 @@
-import { publishedJazzConfig } from "../server/jazz-public.ts";
+import { publishedJazzConfig } from "../jazz-public.ts";
 
 export const config = { maxDuration: 15 };
 

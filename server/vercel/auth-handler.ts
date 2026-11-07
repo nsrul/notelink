@@ -1,4 +1,4 @@
-import { createAuthServer } from "../../server/auth.ts";
+import { createAuthServer } from "../auth.ts";
 
 export const config = { maxDuration: 30 };
 

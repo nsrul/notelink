@@ -7,7 +7,7 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/**/*.ts": {
+    "api/**/*.js": {
       "maxDuration": 30,
       "includeFiles": "node_modules/{jazz-napi,@garden-co/jazz-napi-linux-x64-gnu}/**"
     }
