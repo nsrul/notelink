@@ -1,7 +1,6 @@
 node_modules/
 dist/
 .vercel
-api/**/*.js
 .jazz-data/
 .terminus/
 .env*
