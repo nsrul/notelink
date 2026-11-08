@@ -5,7 +5,9 @@
   "outputDirectory": "dist",
   "rewrites": [
     { "source": "/api/auth/:path*", "destination": "/api/auth/[...all]?__path=:path" },
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/jazz", "destination": "/api/jazz/[...all]?__path=" },
+    { "source": "/jazz/:path*", "destination": "/api/jazz/[...all]?__path=:path" },
+    { "source": "/((?!api/|jazz(?:/|$)).*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/**/*.js": {

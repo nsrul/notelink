@@ -1,15 +1,15 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { jazzClientConfig } from "./jazz-public.ts";
 
-/** Better Auth and the Jazz coordinates the browser should open. Anything else
- *  falls through to Vite or the static file server. */
-export function handleAuthRequest(
+/** Better Auth, the sign-in flag, and Jazz under `/jazz`. Anything else falls
+ *  through to Vite or the static file server. */
+export function handleNotesRequest(
   req: IncomingMessage,
   res: ServerResponse,
   next: () => void,
   input: {
-    appId: string;
-    serverUrl: string;
-    handler: (req: IncomingMessage, res: ServerResponse) => Promise<void>;
+    auth: (req: IncomingMessage, res: ServerResponse) => Promise<void>;
+    jazz: (req: IncomingMessage, res: ServerResponse, next: () => void) => void;
   },
 ): void {
   const path = req.url?.split("?")[0] ?? "";
@@ -17,12 +17,12 @@ export function handleAuthRequest(
     res.statusCode = 200;
     res.setHeader("content-type", "application/json");
     res.setHeader("cache-control", "no-store");
-    res.end(JSON.stringify({ appId: input.appId, serverUrl: input.serverUrl, env: "dev" }));
+    res.end(JSON.stringify(jazzClientConfig()));
     return;
   }
   if (path.startsWith("/api/auth")) {
-    void input.handler(req, res);
+    void input.auth(req, res);
     return;
   }
-  next();
+  input.jazz(req, res, next);
 }

@@ -38,14 +38,6 @@ interface LiveRow {
   signature?: string;
 }
 
-/** Public cloud settings, when the build was given them. Secrets are never read here. */
-export function jazzCloudConfig(): Pick<JazzSyncOptions, "appId" | "serverUrl" | "env"> | null {
-  const appId = import.meta.env.VITE_JAZZ_APP_ID?.trim();
-  const serverUrl = import.meta.env.VITE_JAZZ_SERVER_URL?.trim();
-  if (!appId || !serverUrl) return null;
-  return { appId, serverUrl, env: "prod" };
-}
-
 /** The signed-in Jazz client the app's notebook mirrors through. */
 export interface AppJazz {
   db: Db;
@@ -60,8 +52,7 @@ let appSync: { db: Db; promise: Promise<NotebookSync> } | undefined;
 /** One sync session for this page. Missing cloud settings, or no signed-in
  *  account, leave the notebook local. */
 export function startAppJazzSync(jazz?: AppJazz): Promise<NotebookSync | null> {
-  const config = jazzCloudConfig();
-  if (!config || !jazz) return Promise.resolve(null);
+  if (!jazz) return Promise.resolve(null);
   if (appSync?.db === jazz.db) return appSync.promise;
   const previous = appSync;
   const promise = (async () => {
@@ -141,7 +132,7 @@ function bindSync(input: {
   let primed = false;
   let snapshot = new Map<string, string>();
   const rejected = new Map<string, string>();
-  const readTier = { tier: ReadTier.LocalFirstUnlessEmpty } as const;
+  const readTier = { tier: ReadTier.Remote } as const;
 
   const unsubscribeRecords = db.subscribe(app.notes_records, () => kick(), readTier);
   const unsubscribeFiles = db.subscribe(app.notes_files, () => kick(), readTier);

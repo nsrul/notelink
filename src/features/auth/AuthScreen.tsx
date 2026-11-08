@@ -1,13 +1,14 @@
 import { KeyRound, NotebookPen, UserPlus } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
+import { useJazzAuth } from "jazz-tools/react";
 import { authClient } from "../../platform/auth-client";
 
 type Mode = "signin" | "signup";
 
 /** The window before a notebook opens: sign in with Better Auth, or make an
- *  account. Jazz follows the Better Auth session and opens the workspace once
- *  its account is admitted. */
+ *  account. This host then admits that session and opens the workspace. */
 export function AuthScreen() {
+  const auth = useJazzAuth();
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,8 +41,7 @@ export function AuthScreen() {
           })
         : await authClient.signIn.email({ email: email.trim(), password });
       if (result.error) setFailure(result.error.message ?? "Sign-in failed.");
-      // On success the Jazz provider follows the Better Auth session and swaps
-      // this screen for the notebook.
+      else await auth.reauthenticate();
     } catch (reason) {
       setFailure(reason instanceof Error ? reason.message : "Something went wrong. Try again.");
     } finally {

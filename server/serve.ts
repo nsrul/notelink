@@ -1,8 +1,9 @@
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer, type ServerResponse } from "node:http";
 import { extname, join, normalize, resolve, sep } from "node:path";
-import { handleAuthRequest } from "./routes.ts";
-import { startNotesJazzServer } from "./local-jazz.ts";
+import { toNodeHandler } from "better-auth/node";
+import { notesBackend } from "./auth.ts";
+import { handleNotesRequest } from "./routes.ts";
 
 const port = 8870;
 const host = "127.0.0.1";
@@ -47,23 +48,22 @@ if (!existsSync(join(distDir, "index.html"))) {
   process.exit(1);
 }
 
-const jazz = await startNotesJazzServer();
-const { createAuthServer } = await import("./auth.ts");
-const { toNodeHandler } = await import("better-auth/node");
-const { auth, close } = await createAuthServer({
-  appId: jazz.appId,
-  serverUrl: jazz.url,
-  backendSecret: jazz.backendSecret,
-  env: "dev",
-});
+const { jazz, auth } = notesBackend();
 const handler = toNodeHandler(auth);
 const indexHtml = join(distDir, "index.html");
 
 const server = createServer((req, res) => {
-  handleAuthRequest(req, res, () => {
+  handleNotesRequest(req, res, () => {
     const path = staticFile(req.url ?? "/") ?? indexHtml;
     sendFile(res, path);
-  }, { appId: jazz.appId, serverUrl: jazz.url, handler });
+  }, {
+    auth: handler,
+    jazz: (request, response, next) => jazz.nodeHandler(request, response, next),
+  });
+});
+
+void jazz.attach(server).catch((error: unknown) => {
+  console.error("[notes] Jazz sockets did not attach:", error instanceof Error ? error.message : error);
 });
 
 server.listen(port, host, () => {
@@ -72,8 +72,7 @@ server.listen(port, host, () => {
 
 async function shutdown() {
   server.close();
-  await close().catch(() => undefined);
-  await jazz.stop().catch(() => undefined);
+  await jazz.close().catch(() => undefined);
   process.exit(0);
 }
 process.once("SIGINT", () => void shutdown());
