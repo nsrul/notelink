@@ -13,7 +13,7 @@ npm run dev
 
 Open **http://127.0.0.1:8870**. Keep using that exact address: browser storage belongs to an origin, so changing the hostname, protocol, or port opens a separate notebook.
 
-Copy `.env.example` to `.env` for a production build that embeds Jazz Cloud. `VITE_JAZZ_APP_ID` and `VITE_JAZZ_SERVER_URL` are public. `JAZZ_ADMIN_SECRET` and `BACKEND_SECRET` stay on the machine that deploys the schema; they are not included in the browser bundle. CI stores the same four names as repository secrets. Its production build receives the two public values, and a push to main publishes the schema. `npm run dev` does not send the browser to Jazz Cloud: Cloud cannot fetch a JWKS endpoint on this machine.
+Copy `.env.example` to `.env` for local auth settings. Vercel deployments use the Vercel-backed Jazz store; no Jazz Cloud app ID or admin secret is needed.
 
 ## Accounts and sign-in
 
@@ -21,9 +21,9 @@ Copy `.env.example` to `.env` for a production build that embeds Jazz Cloud. `VI
 
 The account menu shows the email and signs out. Signing out leaves the notebook in this browser and drops the session. The next sign-in opens that account's notebook. Another account does not see those rows.
 
-GitHub Actions deploys the site and Better Auth together to the existing Vercel project `notes` on team `nnassrulls-projects`, served at `https://notes.nasrul.info`. `/api/auth` handles sign-in. `/api/jazz-config` points the browser at Jazz Cloud. A push to `main` publishes the Jazz schema, then deploys production. Pull requests from this repository get a preview deployment. The workflow copies `VITE_JAZZ_APP_ID`, `VITE_JAZZ_SERVER_URL`, `BACKEND_SECRET`, and `BETTER_AUTH_SECRET` from GitHub Actions secrets onto that project. `VERCEL_TOKEN` (from the Vercel account token page) has to be a repository secret before that job can sign in. Automatic Git deployments are turned off, so a build that lacks those secrets cannot replace the site. The Docker image remains a static file server and has no auth server. Without Jazz settings the notebook stays in this browser.
+GitHub Actions checks pull requests and pushes to `main` with tests and a production build. A separate deployment workflow creates Vercel previews for opened or updated pull requests and deploys production only after a push to `main`. The project `notes` on team `nsrulswork` is served at `https://notes.nasrul.info`; `/api/auth` handles sign-in and `/jazz` routes sync through its Vercel-backed Jazz store. Production uses a 10 GiB Drive; previews use 1 GiB Drives. Set `BETTER_AUTH_SECRET` directly in the Vercel project's Production and Preview environment settings. GitHub Actions needs a `VERCEL_TOKEN` repository secret with access to the `nsrulswork` team to deploy; runtime environment variables come from Vercel, not GitHub secrets. Automatic Git deployments are disabled. The Docker image remains a static file server and has no auth server.
 
-Set `BETTER_AUTH_URL` and `BETTER_AUTH_SECRET` when a local auth server is reached at an origin other than `http://127.0.0.1:8870`. Leave `BETTER_AUTH_URL` empty on Vercel: the request host is the cookie origin, and Jazz JWTs are issued for the project's production host.
+Set `BETTER_AUTH_URL` and `BETTER_AUTH_SECRET` when a local auth server is reached at an origin other than `http://127.0.0.1:8870`. Leave `BETTER_AUTH_URL` empty on Vercel: the request host is the cookie origin.
 
 For a production build served locally:
 

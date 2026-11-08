@@ -1,0 +1,40 @@
+name: Deploy
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+jobs:
+  deploy:
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: vercel-${{ github.ref }}
+      cancel-in-progress: true
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Install Vercel CLI
+        run: npm install --global vercel@54.9.1
+      - name: Link the notes project
+        run: vercel link --yes --non-interactive --scope nsrulswork --project notes
+      - name: Deploy production
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          vercel pull --yes --non-interactive --environment=production
+          vercel build --prod --yes --standalone
+          vercel deploy --prebuilt --prod --yes
+      - name: Deploy preview
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        run: |
+          vercel pull --yes --non-interactive --environment=preview
+          vercel build --yes --standalone
+          vercel deploy --prebuilt --yes
