@@ -1,4 +1,5 @@
 import { schema as s } from "jazz-tools";
+import { migrations } from "./migrations/index.ts";
 import { schema as betterAuthSchema } from "./schema-better-auth/schema.ts";
 
 /** The notebook's records and attachments, one row per local key.
@@ -23,4 +24,4 @@ export const app = s.defineApp({
     updated_at: s.string(),
     deleted: s.boolean(),
   }, {}),
-});
+}, { migrations });

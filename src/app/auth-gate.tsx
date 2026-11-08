@@ -1,43 +1,35 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { betterAuth } from "jazz-tools/client";
 import { JazzProvider, useJazzAuth, useJazzClient, useSession, type JazzAuthState } from "jazz-tools/react";
 import { AuthScreen } from "../features/auth/AuthScreen";
 import { authClient } from "../platform/auth-client";
-import { loadJazzClientConfig, type JazzClientConfig } from "../platform/jazz-config";
+import { jazzBackendEnabled } from "../platform/jazz-config";
 import { stopAppJazzSync } from "../platform/jazz-sync";
 import { WorkspaceProvider, type WorkspaceJazz } from "./workspace-context";
 
-/** Asks the auth server which Jazz server to open, then admits the Better Auth
- *  session. Without either, the notebook stays in this browser. */
+/** Asks this host whether it can admit an account. A static build cannot, so
+ *  the notebook stays in this browser. */
 export function JazzBootstrap({ children }: { children: ReactNode }) {
-  const [phase, setPhase] = useState<"loading" | "ready">("loading");
-  const [config, setConfig] = useState<JazzClientConfig | null>(null);
+  const [enabled, setEnabled] = useState<boolean | null>(null);
 
   useEffect(() => {
     let active = true;
-    void loadJazzClientConfig().then(next => {
-      if (!active) return;
-      setConfig(next);
-      setPhase("ready");
+    void jazzBackendEnabled().then(next => {
+      if (active) setEnabled(next);
     });
     return () => { active = false; };
   }, []);
 
-  if (phase === "loading") return <AuthLoading />;
-  return <AuthGate config={config}>{children}</AuthGate>;
+  if (enabled === null) return <AuthLoading />;
+  return <AuthGate enabled={enabled}>{children}</AuthGate>;
 }
 
-/** Opens the notebook for the Better Auth user Jazz admitted, or the sign-in
- *  window when there is none. Without Jazz settings the notebook is local and
- *  opens directly. */
-export function AuthGate({ config, children }: { config: JazzClientConfig | null; children: ReactNode }) {
-  if (!config) return <WorkspaceProvider>{children}</WorkspaceProvider>;
+/** Opens the notebook for the account this backend admitted, or the sign-in
+ *  window when there is none. Without a backend the notebook is local. */
+export function AuthGate({ enabled, children }: { enabled: boolean; children: ReactNode }) {
+  if (!enabled) return <WorkspaceProvider>{children}</WorkspaceProvider>;
   return (
     <JazzProvider
-      appId={config.appId}
-      serverUrl={config.serverUrl}
-      env={config.env}
-      auth={betterAuth(authClient)}
+      serverUrl="/jazz"
       signedOut={<AuthScreen />}
       loading={<AuthLoading />}
       error={(state) => <AuthError state={state} />}
@@ -48,34 +40,34 @@ export function AuthGate({ config, children }: { config: JazzClientConfig | null
   );
 }
 
-/** The admitted half of the gate: Jazz's client and account, handed to the
- *  workspace so its notebook mirrors through them. */
+/** The admitted half of the gate. The workspace mirrors the notebook through
+ *  this account's client. */
 function JazzWorkspace({ children }: { children: ReactNode }) {
   const client = useJazzClient();
   const session = useSession();
   const auth = useJazzAuth();
   const betterAuthSession = authClient.useSession();
 
-  const accountId = session?.user.account ?? null;
+  const accountId = session?.user ?? null;
   const email = betterAuthSession.data?.user.email ?? null;
 
   const signOut = useCallback(async () => {
-    // Let go of the account's client before Jazz retires it, so no sync is
-    // left subscribed to a database that is closing.
+    // Drop the cookie before Jazz asks who is signed in. Asking while the
+    // cookie remains opens the same account again.
     await stopAppJazzSync();
-    await auth.logout();
+    await authClient.signOut();
+    await auth.reauthenticate();
   }, [auth]);
 
   const jazz = useMemo<WorkspaceJazz | undefined>(() => (
     accountId ? { db: client.db, accountId, email, signOut } : undefined
   ), [accountId, client.db, email, signOut]);
 
-  // The provider renders `signedOut` until an account is admitted.
   if (!jazz) return null;
   return <WorkspaceProvider jazz={jazz}>{children}</WorkspaceProvider>;
 }
 
-/** Shown while Jazz hydrates the Better Auth session and opens its client. */
+/** Shown while this host's session is admitted and its client opens. */
 function AuthLoading() {
   return (
     <main className="auth" aria-label="Loading Notes">

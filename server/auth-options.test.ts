@@ -1,16 +1,12 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { authOptions, authOrigin, tokenIssuer } from "./auth-options.ts";
-import { publishedJazzConfig } from "./jazz-public.ts";
+import { jazzClientConfig } from "./jazz-public.ts";
 
 const KEYS = [
   "BETTER_AUTH_URL",
   "BETTER_AUTH_SECRET",
   "VERCEL",
   "VERCEL_PROJECT_PRODUCTION_URL",
-  "VITE_JAZZ_APP_ID",
-  "VITE_JAZZ_SERVER_URL",
-  "JAZZ_APP_ID",
-  "BACKEND_SECRET",
 ] as const;
 
 const previous = new Map<string, string | undefined>(KEYS.map(key => [key, process.env[key]]));
@@ -72,22 +68,9 @@ describe("auth origin", () => {
   });
 });
 
-describe("published Jazz config", () => {
-  it("returns the public cloud coordinates only", () => {
-    expect(publishedJazzConfig({
-      VITE_JAZZ_APP_ID: " app ",
-      VITE_JAZZ_SERVER_URL: " https://sync.example/ ",
-      BACKEND_SECRET: "hidden",
-      JAZZ_ADMIN_SECRET: "hidden",
-    })).toEqual({
-      appId: "app",
-      serverUrl: "https://sync.example/",
-      env: "prod",
-    });
-  });
-
-  it("returns null when either public value is missing", () => {
-    expect(publishedJazzConfig({})).toBeNull();
-    expect(publishedJazzConfig({ VITE_JAZZ_APP_ID: "app" })).toBeNull();
+describe("Jazz client config", () => {
+  it("tells a deployed host and a local host apart without cloud coordinates", () => {
+    expect(jazzClientConfig({ VERCEL: "1" })).toEqual({ enabled: true, env: "prod" });
+    expect(jazzClientConfig({})).toEqual({ enabled: true, env: "dev" });
   });
 });

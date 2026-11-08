@@ -1,61 +1,55 @@
 import { betterAuth } from "better-auth";
-import { createJazzSession, type JazzSessionConfig } from "jazz-tools/backend";
+import { createJazz, vercel, type JazzStore } from "jazz-tools/backend";
 import { jazzAdapter } from "jazz-tools/better-auth-adapter";
 import permissions from "../src/jazz/permissions.ts";
 import { app } from "../src/jazz/schema.ts";
-import { authOptions, tokenIssuer } from "./auth-options.ts";
+import { authOptions } from "./auth-options.ts";
 
-export interface AuthServerTarget {
-  appId?: string;
-  serverUrl?: string;
-  backendSecret?: string;
-  env?: "dev" | "prod";
-}
+type SessionReader = {
+  api: {
+    getSession: (input: { headers: Headers }) => Promise<{ user: { id: string } } | null>;
+  };
+};
 
-/** Open the admitted backend session that owns Better Auth's rows, then build
- *  Better Auth on top of it. Pass the Jazz server this process just started,
- *  or the one named by the environment for a deployed auth server. */
-export async function createAuthServer(target?: AuthServerTarget) {
-  const appId = target?.appId ?? process.env.VITE_JAZZ_APP_ID ?? process.env.JAZZ_APP_ID;
-  const serverUrl = target?.serverUrl ?? process.env.VITE_JAZZ_SERVER_URL;
-  const backendSecret = target?.backendSecret ?? process.env.BACKEND_SECRET;
-  if (!appId || !serverUrl || !backendSecret) {
-    throw new Error("Better Auth needs a Jazz app id, server URL, and backend secret");
-  }
-
-  const options = authOptions();
-  const issuer = tokenIssuer();
-  const config: JazzSessionConfig = {
+/** Better Auth's session cookie names the user. The Jazz core trusts this
+ *  backend's credential and does not check the user's token itself. */
+export function openNotesBackend(store: JazzStore) {
+  const holder: { current?: SessionReader } = {};
+  const jazz = createJazz({
     app,
     permissions,
-    appId,
-    serverUrl,
-    env: target?.env ?? (process.env.NODE_ENV === "production" ? "prod" : "dev"),
-    driver: { type: "memory" },
-    jwksUrl: `${issuer}/api/auth/jwks`,
-    jwtIssuer: issuer,
-    jwtAudience: issuer,
-  };
-
-  const session = await createJazzSession({ ...config, initial: { backendSecret } });
-  const snapshot = session.getSnapshot();
-  if (snapshot.status !== "ready" || !snapshot.client) {
-    throw snapshot.error ?? new Error("The Jazz backend session is not ready");
-  }
-  const client = snapshot.client;
-
+    store,
+    authenticate: async (request) => {
+      const auth = holder.current;
+      if (!auth) throw new Error("Better Auth is not ready");
+      const session = await auth.api.getSession({ headers: request.headers });
+      return session ? { userId: session.user.id } : null;
+    },
+  });
   const auth = betterAuth({
-    ...options,
+    ...authOptions(),
     database: jazzAdapter({
-      db: async () => client.db,
+      db: async () => jazz.db,
       schema: app.wasmSchema,
     }),
   });
+  holder.current = auth;
+  return { jazz, auth };
+}
 
-  return {
-    auth,
-    close: async () => {
-      await session.close();
-    },
-  };
+export type NotesBackend = ReturnType<typeof openNotesBackend>;
+
+let opened: ReturnType<typeof openNotesBackend> | undefined;
+
+/** One backend for this process. `vercel()` keeps the data in `.jazz/local`
+ *  on a dev machine and in this Vercel project's Sandbox core when deployed,
+ *  so no Jazz Cloud app or shared secret is involved. */
+export function notesBackend(): NotesBackend {
+  if (!opened) {
+    const maxDriveBytes = process.env.VERCEL_ENV === "preview"
+      ? 1024 ** 3
+      : 10 * 1024 ** 3;
+    opened = openNotesBackend(vercel({ maxDriveBytes }));
+  }
+  return opened;
 }

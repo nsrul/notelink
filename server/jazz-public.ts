@@ -1,10 +1,7 @@
-/** Jazz Cloud coordinates the browser may see. Admin and backend secrets are
- *  never included. */
-export function publishedJazzConfig(
+/** What the browser needs to decide whether this host can admit an account.
+ *  The app id, the Cloud URL, and the admin secret stay on the server. */
+export function jazzClientConfig(
   env: NodeJS.ProcessEnv = process.env,
-): { appId: string; serverUrl: string; env: "prod" } | null {
-  const appId = (env.VITE_JAZZ_APP_ID ?? env.JAZZ_APP_ID)?.trim();
-  const serverUrl = env.VITE_JAZZ_SERVER_URL?.trim();
-  if (!appId || !serverUrl) return null;
-  return { appId, serverUrl, env: "prod" };
+): { enabled: true; env: "dev" | "prod" } {
+  return { enabled: true, env: env.VERCEL ? "prod" : "dev" };
 }

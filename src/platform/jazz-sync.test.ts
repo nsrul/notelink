@@ -1,6 +1,6 @@
 import "fake-indexeddb/auto";
 import type { AccountStore } from "jazz-tools";
-import { startLocalJazzServer } from "jazz-tools/testing";
+import { startTestJazz, type TestJazz } from "jazz-tools/testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { app } from "../jazz/schema";
 import permissions from "../jazz/permissions";
@@ -21,15 +21,10 @@ function memoryAccountStore(): AccountStore {
 }
 
 describe("Jazz notebook sync", { timeout: 60_000 }, () => {
-  let server: Awaited<ReturnType<typeof startLocalJazzServer>>;
+  let server: TestJazz;
 
   beforeAll(async () => {
-    server = await startLocalJazzServer({
-      inMemory: true,
-      allowLocalFirstAuth: true,
-      schema: app,
-      permissions,
-    });
+    server = await startTestJazz({ app, permissions });
   }, 120_000);
 
   afterAll(async () => {

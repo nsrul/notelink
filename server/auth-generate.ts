@@ -11,6 +11,6 @@ export const auth = betterAuth({
     db: async () => {
       throw new Error("The generation config cannot query the database");
     },
-    schema: s.defineApp({}).wasmSchema,
+    schema: s.defineApp({}, { migrations: "none" }).wasmSchema,
   }),
 });

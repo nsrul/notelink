@@ -1,31 +1,15 @@
-import { createAuthServer } from "../auth.ts";
+import { notesBackend } from "../auth.ts";
 import { authRequest } from "./auth-request.ts";
 
 export const config = { maxDuration: 30 };
 
-type AuthServer = Awaited<ReturnType<typeof createAuthServer>>;
-
-let pending: Promise<AuthServer> | undefined;
-
-/** One backend session per instance. Vercel has no durable disk, so this
- *  session uses Jazz Cloud and the in-memory driver. */
-function authServer(): Promise<AuthServer> {
-  if (!pending) {
-    pending = createAuthServer({ env: "prod" }).catch((error: unknown) => {
-      pending = undefined;
-      throw error;
-    });
-  }
-  return pending;
-}
-
 export default {
   async fetch(request: Request): Promise<Response> {
     try {
-      const { auth } = await authServer();
+      const { auth } = notesBackend();
       return auth.handler(authRequest(request));
     } catch (error) {
-      console.error(error);
+      console.error(error instanceof Error ? error.message : "Auth server is unavailable");
       return Response.json({ error: "Auth server is unavailable" }, { status: 500 });
     }
   },

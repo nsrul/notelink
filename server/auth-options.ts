@@ -63,9 +63,9 @@ function vercelBaseURL(issuer: string): { allowedHosts: string[]; protocol: "htt
 }
 
 /** Better Auth settings shared by the runtime server and schema generation.
- *  The JWT plugin issues the ES256 bearer tokens the Jazz server verifies
- *  through this origin's JWKS. Jazz relations are UUID columns, so every
- *  Better Auth row id is a UUID too. */
+ *  The JWT plugin stays so the published schema keeps its key table. Jazz
+ *  admission uses the session cookie. Jazz relations are UUID columns, so
+ *  every Better Auth row id is a UUID too. */
 export function authOptions() {
   const issuer = tokenIssuer();
   const vercel = onVercel();
