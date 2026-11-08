@@ -42,7 +42,7 @@ jobs:
       - name: Install Vercel CLI
         run: npm install --global vercel@54.9.1
       - name: Link the notes project
-        run: vercel link --yes --non-interactive --team nnassrulls-projects --project notes
+        run: vercel link --yes --non-interactive --scope nsrulswork --project notes
       - name: Sync Jazz and auth settings
         run: |
           node --input-type=module <<'EOF'
