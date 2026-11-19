@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff" />
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#191919" />
+    <title>Notes — a calm, local-first notebook</title>
+    <meta
+      name="description"
+      content="A block editor, nested pages, databases, backlinks and graph views, stored on this machine first. Notes syncs only if you choose."
+    />
+    <script>
+      /* Same guess the app itself makes on first paint, so the mockup below
+         opens in whichever theme this browser already prefers, exactly as
+         the real notebook would. */
+      document.documentElement.dataset.theme =
+        window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/landing/main.tsx"></script>
+  </body>
+</html>
