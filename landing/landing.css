@@ -128,13 +128,57 @@ body,
 /* ------------------------------------------------------------ Mockup -- */
 
 .landing-mockup-stage {
-  padding: 0 24px 72px;
+  position: relative;
+  isolation: isolate;
+  padding: 48px 24px 72px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
+/* "Pewter Fade" (pryzm.design/gallery/pewter-fade-50632e): a wash of cool
+   blue lit by a warm bloom, blurred into a dreamlike square. Pryzm renders
+   this live in WebGL behind a paid export; this is a CSS approximation of
+   the same look — two blurred radial gradients (a pewter-blue wash, a warm
+   bloom offset toward one corner) masked into a soft square and faded at
+   the edges, sitting behind the real mockup frame. Swap this block for an
+   exported Pryzm asset (`background-image: url(...)`) for a pixel-exact
+   match. */
+.landing-mockup-glow {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  right: 0;
+  height: 680px;
+  z-index: -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.landing-mockup-glow::before {
+  content: "";
+  width: min(880px, 92%);
+  aspect-ratio: 1;
+  flex: none;
+  background:
+    radial-gradient(circle at 64% 32%, rgba(224, 171, 113, 0.5), transparent 52%),
+    radial-gradient(circle at 50% 54%, rgba(129, 145, 163, 0.65), rgba(86, 99, 119, 0.3) 46%, transparent 74%);
+  filter: blur(64px) saturate(115%);
+  mask-image: radial-gradient(circle at 50% 50%, black 38%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 38%, transparent 72%);
+}
+
+:root[data-theme="dark"] .landing-mockup-glow::before {
+  background:
+    radial-gradient(circle at 64% 32%, rgba(224, 171, 113, 0.32), transparent 52%),
+    radial-gradient(circle at 50% 54%, rgba(110, 124, 143, 0.55), rgba(70, 82, 100, 0.28) 46%, transparent 74%);
+}
+
 .landing-mockup-frame {
+  position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 980px;
   height: 600px;

@@ -58,6 +58,7 @@ export function Landing() {
         </section>
 
         <section className="landing-mockup-stage landing-wrap" id="inside">
+          <div className="landing-mockup-glow" aria-hidden="true" />
           <div className="landing-mockup-frame">
             <AppMockup />
           </div>
