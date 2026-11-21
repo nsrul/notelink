@@ -1,5 +1,4 @@
 import { Blocks, GitBranch, History, Table2, FolderTree } from "lucide-react";
-import { AppMockup } from "./AppMockup";
 
 const FEATURES = [
   {
@@ -39,7 +38,7 @@ export function Landing() {
             <a href="#features">Features</a>
             <a href="#inside">Inside the notebook</a>
           </nav>
-          <a className="btn btn--primary landing-cta" href="http://127.0.0.1:8870">Open Notes</a>
+          <a className="btn btn--primary landing-cta" href="/app/">Open Notes</a>
         </div>
       </header>
 
@@ -52,7 +51,7 @@ export function Landing() {
             connect — stored on this machine first, synced only if you choose.
           </p>
           <div className="landing-cta-row">
-            <a className="btn btn--primary" href="http://127.0.0.1:8870">Open Notes</a>
+            <a className="btn btn--primary" href="/app/">Open Notes</a>
             <a className="btn btn--outline" href="#inside">See how it works</a>
           </div>
         </section>
@@ -60,11 +59,12 @@ export function Landing() {
         <section className="landing-mockup-stage landing-wrap" id="inside">
           <div className="landing-mockup-glow" aria-hidden="true" />
           <div className="landing-mockup-frame">
-            <AppMockup />
+            <iframe
+              className="landing-mockup"
+              title="Notes, open to a sample notebook"
+              src="/app/?demo=1&page=demo-page-lighthouse"
+            />
           </div>
-          <p className="landing-mockup-caption">
-            The real window, with a page that doesn't exist — every class above is Notes's own.
-          </p>
         </section>
 
         <section className="landing-band" id="features">
@@ -90,7 +90,7 @@ export function Landing() {
             <h2 className="landing-section-title center">Start your notebook.</h2>
             <p className="landing-lede center">Free, local-first, and yours to keep. Sync later if you want to.</p>
             <div className="landing-cta-row center">
-              <a className="btn btn--primary" href="http://127.0.0.1:8870">Open Notes</a>
+              <a className="btn btn--primary" href="/app/">Open Notes</a>
             </div>
           </div>
         </section>

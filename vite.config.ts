@@ -14,11 +14,12 @@ export default defineConfig(({ command, mode }) => {
     ],
     build: {
       rollupOptions: {
-        // The marketing page is a second, static entry: it shares the app's
-        // React, Vite and stylesheet, but carries none of its own state.
+        // Two static entries: the marketing page is what `/` serves, and the
+        // notebook itself lives under `/app/`. They share the app's React,
+        // Vite and stylesheet; the landing page carries none of its state.
         input: {
-          app: fileURLToPath(new URL("./index.html", import.meta.url)),
-          landing: fileURLToPath(new URL("./landing/index.html", import.meta.url)),
+          landing: fileURLToPath(new URL("./index.html", import.meta.url)),
+          app: fileURLToPath(new URL("./app/index.html", import.meta.url)),
         },
       },
     },

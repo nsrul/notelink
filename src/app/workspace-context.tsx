@@ -48,6 +48,7 @@ import { bodyPath, linkIntoParent, trashWrites } from "./page-rows";
 import { reidentify } from "../features/editor/editor-commands";
 import { selectionPoints } from "../features/editor/selection";
 import { createPlatformClient, type PlatformClient } from "../platform/client";
+import { isDemoMode } from "../platform/demo";
 import { startAppJazzSync } from "../platform/jazz-sync";
 import { SpaceRosters } from "../platform/rosters";
 import { WorkspaceDocument, type SyncStatus, type WorkspaceMutation } from "../platform/workspace-document";
@@ -284,6 +285,11 @@ export function WorkspaceProvider({ children, jazz }: { children: ReactNode; jaz
         id: jazz.accountId ?? "local-user",
         handle: jazz.email ?? jazz.accountId ?? "local",
         displayName: jazz.email ?? "Notes account",
+        avatarUrl: null,
+      } : isDemoMode() ? {
+        id: "demo",
+        handle: "nayz",
+        displayName: "Nayz",
         avatarUrl: null,
       } : undefined);
     })()

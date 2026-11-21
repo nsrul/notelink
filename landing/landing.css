@@ -5,22 +5,33 @@
    (--ink, --paper, --sidebar, --blue, --hairline, --notes-font-*), read from
    the real stylesheet imported in main.tsx. This file adds layout for
    marketing copy only — it never defines a new color or a new font, and
-   it never touches a class the app itself owns (those live in AppMockup.tsx,
-   unmodified).
+   it never touches a class the app itself owns. The frame below is the app,
+   in its own window.
    ========================================================================== */
 
 /* The app's own reset pins html/body/#root to exactly the window's height
    with `overflow: hidden` — every scrollable area inside Notes is its own
    `.scroller`, because the app IS the window. This page is tall, ordinary
    marketing copy, so it gets its page scroll back; nothing inside
-   AppMockup.tsx is touched; that still scrolls internally exactly as the
-   real `.page-surface` does. */
+   the sample notebook is touched; that still scrolls inside its own window. */
 html,
 body,
 #root {
   height: auto;
   min-height: 100%;
   overflow: visible;
+}
+
+/* `.btn` is the app's real button class, normally only ever applied to
+   <button> elements, which are never underlined by a browser's default
+   styles. This page uses it on <a> CTAs instead, which are — this removes
+   that underline, at rest and on hover/focus, without touching `.btn`
+   anywhere the app itself uses it. */
+.landing .btn,
+.landing .btn:hover,
+.landing .btn:focus,
+.landing .btn:active {
+  text-decoration: none;
 }
 
 .landing {
@@ -81,6 +92,15 @@ body,
   height: 56px;
 }
 
+/* The header's two link groups are plain anchors, not the app's `.btn`, so
+   the browser still draws its default underline. Color is the hover cue
+   here, matching the quiet nav the app itself uses. */
+.landing-wordmark,
+.landing-nav a {
+  color: inherit;
+  text-decoration: none;
+}
+
 .landing-wordmark {
   font-weight: 700;
   font-size: 15px;
@@ -136,20 +156,17 @@ body,
   align-items: center;
 }
 
-/* "Pewter Fade" (pryzm.design/gallery/pewter-fade-50632e): a wash of cool
-   blue lit by a warm bloom, blurred into a dreamlike square. Pryzm renders
-   this live in WebGL behind a paid export; this is a CSS approximation of
-   the same look — two blurred radial gradients (a pewter-blue wash, a warm
-   bloom offset toward one corner) masked into a soft square and faded at
-   the edges, sitting behind the real mockup frame. Swap this block for an
-   exported Pryzm asset (`background-image: url(...)`) for a pixel-exact
-   match. */
+/* The backdrop artwork: a soft blue wash lit by a warm red bloom, finished
+   with fine grain (landing/mockup-backdrop.jpg, 1600×1200). It sits behind
+   the real mockup frame, masked at the edges so it dissolves into the page
+   rather than ending on a hard rectangle — no extra blur, since that would
+   wipe out the grain the image is built around. */
 .landing-mockup-glow {
   position: absolute;
-  top: -40px;
+  top: -160px;
   left: 0;
   right: 0;
-  height: 680px;
+  height: 1000px;
   z-index: -1;
   display: flex;
   align-items: center;
@@ -159,21 +176,30 @@ body,
 
 .landing-mockup-glow::before {
   content: "";
-  width: min(880px, 92%);
-  aspect-ratio: 1;
+  width: min(1600px, 154%);
+  aspect-ratio: 4 / 3;
   flex: none;
-  background:
-    radial-gradient(circle at 64% 32%, rgba(224, 171, 113, 0.5), transparent 52%),
-    radial-gradient(circle at 50% 54%, rgba(129, 145, 163, 0.65), rgba(86, 99, 119, 0.3) 46%, transparent 74%);
-  filter: blur(64px) saturate(115%);
-  mask-image: radial-gradient(circle at 50% 50%, black 38%, transparent 72%);
-  -webkit-mask-image: radial-gradient(circle at 50% 50%, black 38%, transparent 72%);
+  background-image: url("./mockup-backdrop.jpg");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.9;
+  /* Faded on both axes: a soft ellipse so it never ends on a rectangle, and
+     a vertical ramp so it lifts off the hero copy above and the features
+     band below instead of bleeding across their hairlines. */
+  mask-image:
+    radial-gradient(ellipse 56% 50% at 50% 50%, black 36%, rgba(0, 0, 0, 0.6) 64%, transparent 88%),
+    linear-gradient(to bottom, transparent 0, black 18%, black 68%, transparent 88%);
+  mask-composite: intersect;
+  -webkit-mask-image:
+    radial-gradient(ellipse 56% 50% at 50% 50%, black 36%, rgba(0, 0, 0, 0.6) 64%, transparent 88%),
+    linear-gradient(to bottom, transparent 0, black 18%, black 68%, transparent 88%);
+  -webkit-mask-composite: source-in;
 }
 
+/* Dark paper is near-black, so the artwork is eased back a touch to keep
+   the app window the brightest thing on the page. */
 :root[data-theme="dark"] .landing-mockup-glow::before {
-  background:
-    radial-gradient(circle at 64% 32%, rgba(224, 171, 113, 0.32), transparent 52%),
-    radial-gradient(circle at 50% 54%, rgba(110, 124, 143, 0.55), rgba(70, 82, 100, 0.28) 46%, transparent 74%);
+  opacity: 0.85;
 }
 
 .landing-mockup-frame {
@@ -186,13 +212,17 @@ body,
   overflow: hidden;
   box-shadow: var(--shadow-pop);
   isolation: isolate;
+  background: var(--paper);
 }
 
-.landing-mockup-caption {
-  margin-top: 16px;
-  font-family: var(--notes-font-code);
-  font-size: 12.5px;
-  color: var(--ink-3);
+/* The real notebook, not a picture of one. It fills the frame and scrolls
+   inside itself, the way the app scrolls when it is the whole window. */
+.landing-mockup {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: var(--paper);
 }
 
 /* -------------------------------------------------------------- Bands -- */
@@ -272,4 +302,7 @@ body,
   .landing-nav { display: none; }
   .landing-features { grid-template-columns: 1fr; }
   .landing-mockup-frame { height: 480px; }
+  /* A 4:3 painting is shorter than the tall mobile frame, so it would hide
+     almost entirely behind it; square it up to keep a visible halo. */
+  .landing-mockup-glow::before { width: 170%; aspect-ratio: 1; }
 }
