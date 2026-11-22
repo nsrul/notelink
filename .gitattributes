@@ -1,0 +1,4 @@
+# esbuild output of server/vercel/*.ts. These bundles are most of the
+# repository by bytes, so GitHub Linguist would otherwise call the project
+# JavaScript. They stay in git because Vercel deploys api/**/*.js.
+api/**/*.js linguist-generated=true
