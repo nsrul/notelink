@@ -13,8 +13,9 @@ export const BLOCK_KINDS = ["text", "heading1", "heading2", "heading3", "todo", 
 export const COLOR_NAMES = ["gray", "brown", "orange", "yellow", "green", "blue", "purple", "pink", "red"] as const;
 export const CONTENT_COLORS = [...COLOR_NAMES, ...COLOR_NAMES.map((name) => `${name}_background` as const)];
 
-/** The gradients a page's cover may be (features/editor/page-decoration.ts). */
-export const COVER_IDS = ["slate", "dawn", "moss", "tide", "orchid", "clay", "ink", "paper"] as const;
+/** The covers a page may wear: painted gradients, and one photograph
+ *  (features/editor/page-decoration.ts). */
+export const COVER_IDS = ["slate", "dawn", "moss", "tide", "orchid", "clay", "ink", "paper", "grove"] as const;
 
 /** What a database's property holds, and the layouts of its views. */
 export const PROPERTY_TYPES = ["text", "select", "status", "date", "person", "image"] as const;

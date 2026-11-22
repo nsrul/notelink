@@ -4,7 +4,7 @@ const FEATURES = [
   {
     icon: Blocks,
     title: "Block editor",
-    body: "Headings, lists, checkboxes, callouts, code and embeds — composed the way you'd write on paper, not fight with a toolbar.",
+    body: "Headings, lists, checkboxes, callouts, code and embeds, composed the way you'd write on paper instead of fighting a toolbar.",
   },
   {
     icon: FolderTree,
@@ -44,11 +44,10 @@ export function Landing() {
 
       <main id="top">
         <section className="landing-hero landing-wrap">
-          <p className="landing-eyebrow">Local-first notebook</p>
           <h1 className="landing-headline">Write it down. Keep it yours.</h1>
           <p className="landing-lede">
             A block editor, nested pages, databases, backlinks and a graph of how your ideas
-            connect — stored on this machine first, synced only if you choose.
+            connect. Stored on this machine first, synced only if you choose.
           </p>
           <div className="landing-cta-row">
             <a className="btn btn--primary" href="/app/">Open Notes</a>
@@ -62,14 +61,13 @@ export function Landing() {
             <iframe
               className="landing-mockup"
               title="Notes, open to a sample notebook"
-              src="/app/?demo=1&page=demo-page-lighthouse"
+              src="/app/?demo=1&page=demo-page-daily-journal"
             />
           </div>
         </section>
 
         <section className="landing-band" id="features">
           <div className="landing-wrap">
-            <p className="landing-eyebrow">What's inside</p>
             <h2 className="landing-section-title">Everything a notebook should do, nothing it shouldn't.</h2>
             <ul className="landing-features">
               {FEATURES.map(({ icon: Icon, title, body }) => (

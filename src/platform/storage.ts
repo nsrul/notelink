@@ -1,8 +1,10 @@
 /** IndexedDB is the source of truth. Successful writes mean the transaction committed. */
 export const DATABASE_NAME = 'open-notes-v1';
 /** The landing page's live demo keeps its own notebook, so nothing a visitor
- *  tries there can reach the notebook at `/app/`. */
-export const DEMO_DATABASE_NAME = 'open-notes-demo-v1';
+ *  tries there can reach the notebook at `/app/`. The version rises when the
+ *  seed changes, so a returning visitor is handed the new notebook rather
+ *  than the old one under the new mockup. */
+export const DEMO_DATABASE_NAME = 'open-notes-demo-v2';
 let currentName = DATABASE_NAME;
 let opening: Promise<IDBDatabase> | undefined;
 /** Chooses the notebook this window opens. Called once, before any read, by

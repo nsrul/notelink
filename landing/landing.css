@@ -1,16 +1,16 @@
 /* ============================================================================
-   Notes — landing page
+   Notes, landing page
    ----------------------------------------------------------------------------
    Every color and font here is one of the app's own custom properties
    (--ink, --paper, --sidebar, --blue, --hairline, --notes-font-*), read from
    the real stylesheet imported in main.tsx. This file adds layout for
-   marketing copy only — it never defines a new color or a new font, and
+   marketing copy only: it never defines a new color or a new font, and
    it never touches a class the app itself owns. The frame below is the app,
    in its own window.
    ========================================================================== */
 
 /* The app's own reset pins html/body/#root to exactly the window's height
-   with `overflow: hidden` — every scrollable area inside Notes is its own
+   with `overflow: hidden`; every scrollable area inside Notes is its own
    `.scroller`, because the app IS the window. This page is tall, ordinary
    marketing copy, so it gets its page scroll back; nothing inside
    the sample notebook is touched; that still scrolls inside its own window. */
@@ -24,7 +24,7 @@ body,
 
 /* `.btn` is the app's real button class, normally only ever applied to
    <button> elements, which are never underlined by a browser's default
-   styles. This page uses it on <a> CTAs instead, which are — this removes
+   styles. This page uses it on <a> CTAs instead, which are; this removes
    that underline, at rest and on hover/focus, without touching `.btn`
    anywhere the app itself uses it. */
 .landing .btn,
@@ -45,15 +45,6 @@ body,
   max-width: 1040px;
   margin: 0 auto;
   padding: 0 24px;
-}
-
-.landing-eyebrow {
-  font-family: var(--notes-font-code);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-  margin: 0 0 12px;
 }
 
 .landing-section-title {
@@ -159,7 +150,7 @@ body,
 /* The backdrop artwork: a soft blue wash lit by a warm red bloom, finished
    with fine grain (landing/mockup-backdrop.jpg, 1600×1200). It sits behind
    the real mockup frame, masked at the edges so it dissolves into the page
-   rather than ending on a hard rectangle — no extra blur, since that would
+   rather than ending on a hard rectangle. No extra blur, since that would
    wipe out the grain the image is built around. */
 .landing-mockup-glow {
   position: absolute;

@@ -32,9 +32,6 @@ export function isDemoMode(): boolean {
   return typeof window !== "undefined" && new URLSearchParams(window.location.search).has("demo");
 }
 
-/** The page the landing frame opens on. */
-export const DEMO_OPEN_PAGE = "demo-page-lighthouse";
-
 const AUTHOR = "Nayz";
 const CREATED = "2026-10-12T09:00:00.000Z";
 
@@ -77,6 +74,10 @@ const PAGES = {
   kyoto: pageId("kyoto"),
   reading: pageId("reading-list"),
 } as const;
+
+/** The page the landing frame opens on: the journal, whose cover is the
+ *  artwork the mockup is set against. */
+export const DEMO_OPEN_PAGE = PAGES.journal;
 
 const STATUS_OPTIONS: NonNullable<DatabaseProperty["status_options"]> = [
   { id: "not-started", name: "Not started", color: "default", group: "todo" },
@@ -290,7 +291,7 @@ function makeWorkspace(): WorkspaceState {
     )),
     block(blockId("journal", "earlier-2"), "bullet", runs("Cooked the miso noodles again. The butter goes in off the heat — wrote it properly on ", pageMention(PAGES.miso), " so I stop guessing.")),
     tail("journal"),
-  ], { cover: "dawn", font: "serif", updated_at: "2026-11-21T07:40:00.000Z" });
+  ], { cover: "grove", font: "serif", updated_at: "2026-11-21T07:40:00.000Z" });
 
   const ideas = page(PAGES.ideas, "Ideas Inbox", "💡", null, [
     block(blockId("ideas", "intro"), "text", runs(
