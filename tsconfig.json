@@ -26,6 +26,7 @@
     "src",
     "server",
     "landing",
+    "scripts",
     "schema.ts",
     "vite.config.ts"
   ]

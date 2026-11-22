@@ -6,7 +6,7 @@
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1 --port 8870 --strictPort",
-    "build:api": "node scripts/build-api.mjs",
+    "build:api": "node --experimental-strip-types scripts/build-api.ts",
     "build": "npm run typecheck && npm run build:api && vite build",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

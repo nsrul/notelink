@@ -1,7 +1,7 @@
-import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdir } from "node:fs/promises";
-import { build } from "esbuild";
+import { build, type BuildOptions } from "esbuild";
 
 if (!existsSync("node_modules/esbuild/bin/esbuild")) {
   const install = spawnSync(process.execPath, ["node_modules/esbuild/install.js"], { stdio: "inherit" });
@@ -17,7 +17,7 @@ if (!existsSync("node_modules/esbuild/bin/esbuild")) {
 await mkdir("api/auth", { recursive: true });
 await mkdir("api/jazz", { recursive: true });
 
-const shared = {
+const shared: BuildOptions = {
   bundle: true,
   platform: "node",
   format: "esm",
