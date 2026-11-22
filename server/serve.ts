@@ -43,18 +43,32 @@ function sendFile(res: ServerResponse, path: string): void {
   createReadStream(path).pipe(res);
 }
 
-if (!existsSync(join(distDir, "index.html"))) {
+const landingHtml = join(distDir, "index.html");
+const appHtml = join(distDir, "app", "index.html");
+
+if (!existsSync(landingHtml) || !existsSync(appHtml)) {
   console.error("Build the app first: npm run build");
   process.exit(1);
 }
 
+/** The notebook answers under `/app`; everything else is the landing page. */
+function shellFor(urlPath: string): string {
+  let decoded = urlPath.split("?")[0] ?? "/";
+  try {
+    decoded = decodeURIComponent(decoded);
+  } catch {
+    // Fall back to the raw path; no traversal is possible through it here.
+  }
+  return decoded === "/app" || decoded.startsWith("/app/") ? appHtml : landingHtml;
+}
+
 const { jazz, auth } = notesBackend();
 const handler = toNodeHandler(auth);
-const indexHtml = join(distDir, "index.html");
 
 const server = createServer((req, res) => {
   handleNotesRequest(req, res, () => {
-    const path = staticFile(req.url ?? "/") ?? indexHtml;
+    const url = req.url ?? "/";
+    const path = staticFile(url) ?? shellFor(url);
     sendFile(res, path);
   }, {
     auth: handler,

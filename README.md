@@ -11,13 +11,13 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:8870**. Keep using that exact address: browser storage belongs to an origin, so changing the hostname, protocol, or port opens a separate notebook.
+Open **http://127.0.0.1:8870** for the landing page; the notebook itself lives at **http://127.0.0.1:8870/app/**. Keep using that exact address: browser storage belongs to an origin, so changing the hostname, protocol, or port opens a separate notebook.
 
 Copy `.env.example` to `.env` for local auth settings. Vercel deployments use the Vercel-backed Jazz store; no Jazz Cloud app ID or admin secret is needed.
 
 ## Accounts and sign-in
 
-`npm run dev`, and `npm start` after a build, serve Better Auth at `/api/auth` and a Jazz server on this machine. Open **http://127.0.0.1:8870**. The window asks for an email and a password of at least 8 characters. Creating an account signs you in, Jazz admits that session, and the notebook opens. The same email and password open it again after a restart. That local server's accounts and rows stay in `.jazz-data/`, which is not committed.
+`npm run dev`, and `npm start` after a build, serve Better Auth at `/api/auth` and a Jazz server on this machine. Open **http://127.0.0.1:8870/app/**. The window asks for an email and a password of at least 8 characters. Creating an account signs you in, Jazz admits that session, and the notebook opens. The same email and password open it again after a restart. That local server's accounts and rows stay in `.jazz-data/`, which is not committed.
 
 The account menu shows the email and signs out. Signing out leaves the notebook in this browser and drops the session. The next sign-in opens that account's notebook. Another account does not see those rows.
 
@@ -40,7 +40,7 @@ Stop the development server before starting the production server on the same po
 docker compose up --build -d
 ```
 
-Open **http://127.0.0.1:8870**. To stop: `docker compose down`. The container serves static files; notes are stored in the browser, not the container. Use backups to move your notebook between browsers or machines.
+Open **http://127.0.0.1:8870/app/**. To stop: `docker compose down`. The container serves static files; notes are stored in the browser, not the container. Use backups to move your notebook between browsers or machines.
 
 ## Data and backups
 

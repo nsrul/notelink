@@ -31,7 +31,7 @@ export function BackupControls() {
         const backup = parseBackup(await file.text());
         if (!window.confirm(`Replace this browser's notebook with this backup (${backup.records.filter(row => row.collection === 'pages').length} pages)? Download a backup first if you want to keep the current notebook.`)) return;
         await restoreBackup(backup);
-        window.location.assign(window.location.pathname);
+        window.location.assign(`${window.location.pathname}${window.location.search}`);
       } catch (error) { toast(error instanceof Error ? error.message : 'Restore failed.', 'error'); }
       finally { setBusy(false); }
     }}/>

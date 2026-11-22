@@ -1,9 +1,22 @@
 /** IndexedDB is the source of truth. Successful writes mean the transaction committed. */
 export const DATABASE_NAME = 'open-notes-v1';
+/** The landing page's live demo keeps its own notebook, so nothing a visitor
+ *  tries there can reach the notebook at `/app/`. The version rises when the
+ *  seed changes, so a returning visitor is handed the new notebook rather
+ *  than the old one under the new mockup. */
+export const DEMO_DATABASE_NAME = 'open-notes-demo-v2';
+let currentName = DATABASE_NAME;
 let opening: Promise<IDBDatabase> | undefined;
+/** Chooses the notebook this window opens. Called once, before any read, by
+ *  a window that is a demo rather than someone's own notebook. */
+export function useDatabase(name: string): void {
+  if (name === currentName) return;
+  opening = undefined;
+  currentName = name;
+}
 export function database(): Promise<IDBDatabase> {
   return opening ??= new Promise((resolve, reject) => {
-    const request = indexedDB.open(DATABASE_NAME, 1);
+    const request = indexedDB.open(currentName, 1);
     request.onupgradeneeded = () => {
       request.result.createObjectStore('records', { keyPath: ['scope', 'collection', 'id'] });
       request.result.createObjectStore('files');

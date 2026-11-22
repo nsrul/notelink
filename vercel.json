@@ -7,7 +7,9 @@
     { "source": "/api/auth/:path*", "destination": "/api/auth/[...all]?__path=:path" },
     { "source": "/jazz", "destination": "/api/jazz/[...all]?__path=" },
     { "source": "/jazz/:path*", "destination": "/api/jazz/[...all]?__path=:path" },
-    { "source": "/((?!api/|jazz(?:/|$)).*)", "destination": "/index.html" }
+    { "source": "/app", "destination": "/app/index.html" },
+    { "source": "/app/(.*)", "destination": "/app/index.html" },
+    { "source": "/((?!api/|jazz(?:/|$)|app(?:/|$)).*)", "destination": "/index.html" }
   ],
   "functions": {
     "api/**/*.js": {
