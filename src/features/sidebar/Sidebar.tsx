@@ -1,3 +1,4 @@
+import { AnaraImport } from "../anara/AnaraImport";
 import { BackupControls } from "../../components/BackupControls";
 import {
   ArrowUpNarrowWide,
@@ -910,6 +911,8 @@ export function Sidebar() {
       >
         <MenuList label="Appearance" autoFocus>
           <BackupControls />
+          <MenuDivider />
+          <AnaraImport onImported={() => setSettingsOpen(false)} />
           <MenuDivider />
           <div className="menu__section-title">Appearance</div>
           {THEMES.map((value) => ({ value, ...THEME_CHOICES[value] })).map(({ value, label, icon: Icon }) => (
