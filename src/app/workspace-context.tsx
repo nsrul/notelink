@@ -185,6 +185,9 @@ export interface CreatePageOptions {
   /** Its name from the start — a page made from a mention is named by what
    *  was typed after the `@`. */
   title?: string;
+  /** Its body from the start, in place of the blank paragraph — what a page
+   *  imported from elsewhere brings with it. */
+  body?: BlockTree;
 }
 
 const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
@@ -461,7 +464,8 @@ export function WorkspaceProvider({ children, jazz }: { children: ReactNode; jaz
     if (!document || !platform) return null;
     const id = createId(kind === "database" ? "database" : "page");
     const blank = blankPage(id, kind, parentId, platform.bootstrap.user.displayName);
-    const named = options.title ? { ...blank, title: options.title } : blank;
+    const based = options.body ? { ...blank, block_tree: options.body } : blank;
+    const named = options.title ? { ...based, title: options.title } : based;
     const page = kind === "database" && options.database ? { ...named, database: options.database } : named;
     const mutations: WorkspaceMutation[] = [{ type: "set", path: ["pages", id], value: page }];
     const parent = parentId ? document.state.pages[parentId] : null;
